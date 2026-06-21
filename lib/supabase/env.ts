@@ -52,6 +52,25 @@ export function getSupabaseAnonKey() {
   return key;
 }
 
+function readSupabaseServiceRoleKeyRaw(): string | null {
+  return (
+    cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY) ??
+    cleanEnvValue(process.env.SUPABASE_SERVICE_KEY) ??
+    null
+  );
+}
+
+/** Service role key — hanya server-side (admin, webhook). */
+export function getSupabaseServiceRoleKey(): string | null {
+  const key = readSupabaseServiceRoleKeyRaw();
+  if (!key || key.includes(".supabase.co")) return null;
+  return key;
+}
+
+export function isSupabaseServiceRoleConfigured(): boolean {
+  return Boolean(getSupabaseServiceRoleKey());
+}
+
 /** URL untuk createClient — fallback placeholder agar build Vercel tidak gagal. */
 export function getSupabaseClientUrl(): string {
   return getSupabaseUrl() ?? "https://placeholder.supabase.co";
@@ -147,6 +166,12 @@ export function getSupabaseEnvDiagnostics() {
       length: rawKey?.length ?? 0,
       prefix: rawKey ? `${rawKey.slice(0, 14)}…` : "",
       valid: Boolean(getSupabaseAnonKey()),
+    },
+    serviceRole: {
+      primaryPresent: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      fallbackPresent: Boolean(process.env.SUPABASE_SERVICE_KEY),
+      length: readSupabaseServiceRoleKeyRaw()?.length ?? 0,
+      valid: isSupabaseServiceRoleConfigured(),
     },
   };
 }

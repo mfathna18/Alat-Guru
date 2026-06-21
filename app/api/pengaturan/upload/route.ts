@@ -8,6 +8,7 @@ import {
 } from "@/lib/services/pengaturan-upload";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseServiceRoleConfigured } from "@/lib/supabase/env";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +18,6 @@ function isUploadKind(value: string): value is PengaturanUploadKind {
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
-      return NextResponse.json(
-        {
-          error:
-            "Upload server belum dikonfigurasi. Tambahkan SUPABASE_SERVICE_ROLE_KEY di Vercel, lalu redeploy.",
-        },
-        { status: 503 },
-      );
-    }
-
     const supabase = await createClient();
     const {
       data: { user },
@@ -71,25 +62,41 @@ export async function POST(req: Request) {
 
     const path = buildPengaturanStoragePath(guru.id, kindRaw, file.name);
     const buffer = Buffer.from(await file.arrayBuffer());
-    const admin = createAdminClient();
+    const uploadOptions = {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: true,
+    };
 
-    const { error: uploadError } = await admin.storage
-      .from(LOGO_SEKOLAH_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type,
-        cacheControl: "3600",
-        upsert: true,
-      });
+    // Utama: unggah dengan sesi login guru (cukup untuk bucket logo-sekolah).
+    let uploadError = (
+      await supabase.storage.from(LOGO_SEKOLAH_BUCKET).upload(path, buffer, uploadOptions)
+    ).error;
+
+    // Cadangan: service role jika tersedia (mis. kebijakan storage ketat).
+    if (uploadError && isSupabaseServiceRoleConfigured()) {
+      const admin = createAdminClient();
+      uploadError = (
+        await admin.storage.from(LOGO_SEKOLAH_BUCKET).upload(path, buffer, uploadOptions)
+      ).error;
+    }
 
     if (uploadError) {
-      const message = uploadError.message.toLowerCase().includes("invalid api key")
-        ? "Koneksi Supabase server tidak valid. Periksa SUPABASE_SERVICE_ROLE_KEY di Vercel lalu redeploy."
-        : uploadError.message;
+      const lower = uploadError.message.toLowerCase();
+      let message = uploadError.message;
+
+      if (lower.includes("invalid api key")) {
+        message =
+          "Koneksi Supabase tidak valid. Periksa env di Vercel lalu redeploy tanpa cache.";
+      } else if (lower.includes("row-level security") || lower.includes("policy")) {
+        message =
+          "Izin unggah ditolak. Pastikan bucket logo-sekolah aktif di Supabase Storage.";
+      }
 
       return NextResponse.json({ error: message }, { status: 500 });
     }
 
-    const { data } = admin.storage.from(LOGO_SEKOLAH_BUCKET).getPublicUrl(path);
+    const { data } = supabase.storage.from(LOGO_SEKOLAH_BUCKET).getPublicUrl(path);
     return NextResponse.json({ url: data.publicUrl });
   } catch (err) {
     return NextResponse.json(
