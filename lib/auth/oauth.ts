@@ -1,13 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
+import { getAuthCallbackUrl } from "@/lib/auth/site-url";
 
 export async function signInWithGoogle(redirectPath = "/dashboard") {
   const supabase = createClient();
-  const origin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
+  const redirectTo = getAuthCallbackUrl(redirectPath);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

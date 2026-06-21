@@ -1,3 +1,5 @@
+import { getLoginUrl, getSiteOrigin } from "@/lib/auth/site-url";
+
 const AUTH_ERRORS: Record<string, string> = {
   "Invalid login credentials":
     "Email atau kata sandi salah. Periksa kembali kredensial Anda.",
@@ -16,15 +18,46 @@ const AUTH_ERRORS: Record<string, string> = {
     "Login Google belum diaktifkan. Aktifkan provider Google di Supabase Dashboard → Authentication → Providers.",
   "Unsupported provider":
     "Provider login tidak didukung. Hubungkan Google di Supabase Dashboard.",
-  "invalid request: both auth code and code verifier should be non-empty":
-    "Sesi login Google kedaluwarsa. Buka http://localhost:3000/login lalu coba masuk lagi.",
-  "Invalid flow state, no valid flow state found":
-    "Sesi login Google kedaluwarsa. Buka http://localhost:3000/login lalu coba masuk lagi.",
 };
+
+function googleSessionExpiredMessage(): string {
+  return `Sesi login Google kedaluwarsa. Tutup tab lain, buka ${getLoginUrl()} lalu coba masuk lagi.`;
+}
+
+function connectionFailedMessage(): string {
+  const origin = getSiteOrigin();
+  if (origin.includes("localhost")) {
+    return "Koneksi gagal. Pastikan npm run dev sedang berjalan dan buka http://localhost:3000 (bukan preview offline).";
+  }
+  return `Koneksi gagal. Periksa koneksi internet dan buka ${origin}/login.`;
+}
 
 export function translateAuthError(message: string) {
   if (message.toLowerCase().includes("connection failed")) {
-    return "Koneksi gagal. Pastikan npm run dev sedang berjalan dan buka http://localhost:3000 (bukan preview offline).";
+    return connectionFailedMessage();
   }
+
+  if (
+    message ===
+      "invalid request: both auth code and code verifier should be non-empty" ||
+    message === "Invalid flow state, no valid flow state found"
+  ) {
+    return googleSessionExpiredMessage();
+  }
+
   return AUTH_ERRORS[message] ?? message;
+}
+
+export function googleRedirectMismatchMessage(): string {
+  const origin = getSiteOrigin();
+  return `Redirect URI tidak cocok. Tambahkan ${origin}/auth/callback dan ${origin}/** di Supabase → Authentication → URL Configuration → Redirect URLs.`;
+}
+
+export function googleFlowStateExpiredMessage(): string {
+  const login = getLoginUrl();
+  const hint =
+    getSiteOrigin().includes("localhost")
+      ? " (bukan 127.0.0.1)"
+      : "";
+  return `Sesi login Google kedaluwarsa. Tutup tab lain, buka ${login}${hint}, lalu coba lagi.`;
 }

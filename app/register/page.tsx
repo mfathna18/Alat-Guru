@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { getAuthCallbackUrl } from "@/lib/auth/site-url";
 import { translateAuthError } from "@/lib/auth-errors";
 
 export default function RegisterPage() {
@@ -40,7 +41,7 @@ export default function RegisterPage() {
         password,
         options: {
           data: { nama_guru: namaGuru },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: getAuthCallbackUrl("/dashboard"),
         },
       });
 

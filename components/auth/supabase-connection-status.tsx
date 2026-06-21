@@ -3,6 +3,8 @@
 import * as React from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
+import { getLoginUrl } from "@/lib/auth/site-url";
+
 interface HealthResponse {
   ok: boolean;
   configured?: boolean;
@@ -97,7 +99,7 @@ export function SupabaseConnectionStatus() {
         if (direct.ok) {
           setState("error");
           setMessage(
-            `${direct.message}\n\nJalankan di terminal:\ncmd /c "scripts\\dev-win.cmd"\nLalu buka http://localhost:3000/login`,
+            `${direct.message}\n\nJalankan di terminal:\ncmd /c "scripts\\dev-win.cmd"\nLalu buka ${getLoginUrl()}`,
           );
           return;
         }

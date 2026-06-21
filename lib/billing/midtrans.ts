@@ -1,5 +1,7 @@
 import { createHash } from "crypto";
 
+import { getSiteOrigin } from "@/lib/auth/site-url";
+
 const SANDBOX_BASE = "https://app.sandbox.midtrans.com";
 const PROD_BASE = "https://app.midtrans.com";
 
@@ -65,7 +67,7 @@ export async function createSnapTransaction(input: CreateSnapInput) {
         first_name: input.customerName,
       },
       callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/billing/success`,
+        finish: `${getSiteOrigin()}/billing/success`,
       },
     }),
   });

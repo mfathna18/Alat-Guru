@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
-import { translateAuthError } from "@/lib/auth-errors";
+import { translateAuthError, googleFlowStateExpiredMessage, googleRedirectMismatchMessage } from "@/lib/auth-errors";
 
 function LoginForm() {
   const router = useRouter();
@@ -58,11 +58,9 @@ function LoginForm() {
         detailLower.includes("code verifier") ||
         detailLower.includes("flow state")
       ) {
-        message =
-          "Sesi login Google kedaluwarsa. Tutup tab lain, buka http://localhost:3000/login (bukan 127.0.0.1), lalu coba lagi.";
+        message = googleFlowStateExpiredMessage();
       } else if (detailLower.includes("redirect")) {
-        message =
-          "Redirect URI tidak cocok. Tambahkan http://localhost:3000/** di Supabase → Authentication → URL Configuration → Redirect URLs.";
+        message = googleRedirectMismatchMessage();
       } else if (rawDetail) {
         message = translateAuthError(rawDetail);
       }
