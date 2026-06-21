@@ -2,21 +2,20 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
-import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
+
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "placeholder-key";
 
 export async function createClient() {
-  const url = getSupabaseUrl();
-  const key = getSupabaseAnonKey();
-
-  if (!url || !key) {
-    throw new Error("Supabase belum dikonfigurasi.");
-  }
-
   const cookieStore = await cookies();
 
-  return createServerClient(url, key, {
+  return createServerClient(supabaseUrl, supabaseKey, {
     global: {
-      fetch: createSupabaseFetch(key),
+      fetch: createSupabaseFetch(supabaseKey),
     },
     cookies: {
       getAll() {

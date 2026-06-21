@@ -21,6 +21,26 @@ export function getSupabaseAnonKey() {
   );
 }
 
+/** URL untuk createClient — fallback placeholder agar build Vercel tidak gagal. */
+export function getSupabaseClientUrl(): string {
+  const url = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  if (url && url.startsWith("https://") && url.includes(".supabase.co")) {
+    return url.replace(/\/+$/, "");
+  }
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+}
+
+/** Anon key untuk createClient — fallback placeholder agar build Vercel tidak gagal. */
+export function getSupabaseClientAnonKey(): string {
+  return (
+    cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ??
+    cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    "placeholder-key"
+  );
+}
+
 export function isSupabaseConfigured() {
   return Boolean(getSupabaseUrl() && getSupabaseAnonKey());
 }

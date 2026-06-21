@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 
 import { AdminLogsManager } from "@/components/admin/admin-logs-manager";

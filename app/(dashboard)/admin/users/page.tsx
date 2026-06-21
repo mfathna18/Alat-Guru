@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 
 import { AdminUsersManager } from "@/components/admin/admin-users-manager";
