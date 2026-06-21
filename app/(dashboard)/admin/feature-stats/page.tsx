@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { redirect } from "next/navigation";
 
 import { AdminFeatureStatsManager } from "@/components/admin/admin-feature-stats-manager";
