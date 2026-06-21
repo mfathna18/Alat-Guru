@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { fetchCurrentGuru } from "@/lib/services/kelas";
 import {
+  validatePengaturanImageFile,
+  type PengaturanUploadKind,
+} from "@/lib/services/pengaturan-upload";
+import {
   assertPengaturanPayload,
   buildPengaturanPayload,
   type PengaturanSekolahInput,
@@ -22,18 +26,44 @@ export interface RaporPreferencesInput {
   rapor_watermark_logo?: boolean;
 }
 
-const LOGO_BUCKET = "logo-sekolah";
-
 export type TtdUploadRole = "wali-kelas" | "kepsek";
 
-function validateSignatureFile(file: File) {
-  const allowed = ["image/png", "image/jpeg", "image/webp", "image/gif"];
-  if (!allowed.includes(file.type)) {
-    throw new Error("Tanda tangan harus berformat PNG, JPG, WEBP, atau GIF.");
+function ttdRoleToUploadKind(role: TtdUploadRole): PengaturanUploadKind {
+  return role === "wali-kelas" ? "ttd-wali" : "ttd-kepsek";
+}
+
+async function uploadPengaturanAsset(
+  file: File,
+  kind: PengaturanUploadKind,
+): Promise<string> {
+  validatePengaturanImageFile(file);
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("kind", kind);
+
+  const res = await fetch("/api/pengaturan/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  const body = (await res.json()) as { url?: string; error?: string };
+
+  if (!res.ok) {
+    const message = body.error ?? "Gagal mengunggah file.";
+    if (message.toLowerCase().includes("invalid api key")) {
+      throw new Error(
+        "Koneksi Supabase tidak valid di server production. Pastikan env Supabase di Vercel sudah benar lalu redeploy.",
+      );
+    }
+    throw new Error(message);
   }
-  if (file.size > 2 * 1024 * 1024) {
-    throw new Error("Ukuran tanda tangan maksimal 2 MB.");
+
+  if (!body.url) {
+    throw new Error("Gagal mengunggah file.");
   }
+
+  return body.url;
 }
 
 export async function fetchPengaturanSekolah(): Promise<PengaturanSekolah | null> {
@@ -174,50 +204,17 @@ export async function uploadAndSaveTtdSekolah(
 
 export async function uploadLogoSekolah(
   file: File,
-  guruId: number,
+  _guruId: number,
 ): Promise<string> {
-  validateSignatureFile(file);
-
-  const supabase = createClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
-  const path = `${guruId}/logo-${Date.now()}.${ext}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from(LOGO_BUCKET)
-    .upload(path, file, {
-      cacheControl: "3600",
-      upsert: true,
-    });
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage.from(LOGO_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return uploadPengaturanAsset(file, "logo");
 }
 
 export async function uploadTtdSekolah(
   file: File,
-  guruId: number,
+  _guruId: number,
   role: TtdUploadRole,
 ): Promise<string> {
-  validateSignatureFile(file);
-
-  const supabase = createClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
-  const prefix = role === "wali-kelas" ? "ttd-wali" : "ttd-kepsek";
-  const path = `${guruId}/${prefix}-${Date.now()}.${ext}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from(LOGO_BUCKET)
-    .upload(path, file, {
-      cacheControl: "3600",
-      upsert: true,
-    });
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage.from(LOGO_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return uploadPengaturanAsset(file, ttdRoleToUploadKind(role));
 }
 
 export function getDefaultTahunAjaran() {

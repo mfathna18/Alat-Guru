@@ -28,13 +28,19 @@ export const EKSKUL_DEMO = [
   { nama: "Hadroh", pembina: "Ust. Hadi, S.Ag." },
 ];
 
-export const SIKAP_NOTES = [
-  "Menunjukkan sikap spiritual yang baik dan hormat kepada guru serta teman.",
-  "Aktif berpartisipasi dalam kegiatan keagamaan sekolah dan kerja kelompok.",
-  "Disiplin, sopan, dan mampu bekerja sama dengan baik di kelas.",
-  "Perlu peningkatan kedisiplinan namun sikap sosial sudah membaik.",
-  "Menunjukkan kepemimpinan dan tanggung jawab dalam kegiatan ekstrakurikuler.",
+export const SIKAP_SPIRITUAL_NOTES = [
+  "Menunjukkan sikap religius, menghargai keberagaman, dan berdoa sebelum serta sesudah kegiatan belajar.",
+  "Taat beribadah, menghormati guru dan teman, serta menjaga kebersihan lingkungan sekolah.",
+  "Memiliki integritas tinggi dan konsisten menunjukkan perilaku yang sesuai nilai agama.",
 ];
+
+export const SIKAP_SOSIAL_NOTES = [
+  "Sopan, jujur, disiplin, bertanggung jawab, dan mampu bekerja sama dalam kelompok.",
+  "Aktif berpartisipasi dalam diskusi kelas, menghargai pendapat teman, dan komunikatif.",
+  "Menunjukkan kepemimpinan, empati, dan kerja sama yang baik dalam kegiatan sekolah.",
+];
+
+export const SIKAP_NOTES = [...SIKAP_SPIRITUAL_NOTES, ...SIKAP_SOSIAL_NOTES];
 
 export const EKSKUL_PREDIKAT = ["Sangat Baik", "Baik", "Cukup", "Kurang"];
 
@@ -181,8 +187,8 @@ export function buildNilaiRowsForIndikators(siswaList, indikatorByKelas) {
         id_siswa: siswa.id,
         id_indikator: indId,
         jenis_asesmen: "SUMATIF",
-        tipe_sumatif: "LM",
-        id_lingkup_materi: lmId,
+        tipe_sumatif: "STS",
+        id_lingkup_materi: null,
         skor_angka: randScore(),
         skor_kualitatif: null,
       });
