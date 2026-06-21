@@ -25,20 +25,19 @@ export default async function AdminFeatureStatsPage() {
     redirect("/dashboard");
   }
 
+  let initialEntries = getEmptyFeatureUsageEntries();
+  let migrationPending = false;
+
   try {
-    const initialEntries = await fetchFeatureUsageStats();
-    return (
-      <AdminFeatureStatsManager
-        initialEntries={initialEntries}
-        migrationPending={false}
-      />
-    );
+    initialEntries = await fetchFeatureUsageStats();
   } catch {
-    return (
-      <AdminFeatureStatsManager
-        initialEntries={getEmptyFeatureUsageEntries()}
-        migrationPending
-      />
-    );
+    migrationPending = true;
   }
+
+  return (
+    <AdminFeatureStatsManager
+      initialEntries={initialEntries}
+      migrationPending={migrationPending}
+    />
+  );
 }

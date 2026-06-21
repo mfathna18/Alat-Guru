@@ -9,7 +9,7 @@
     "vercel-build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "lint:check": "eslint",
+    "lint:ci": "eslint",
     "test:midtrans": "node scripts/test-midtrans.mjs",
     "seed:demo": "node scripts/seed-demo-data.mjs",
     "seed:fill-nilai": "node scripts/fill-random-nilai.mjs",
