@@ -19,10 +19,14 @@ async function pingSupabaseDirect(): Promise<{ ok: boolean; message: string }> {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !key) {
+    const isProduction =
+      typeof window !== "undefined" &&
+      !["localhost", "127.0.0.1"].includes(window.location.hostname);
     return {
       ok: false,
-      message:
-        "Variabel env Supabase tidak ditemukan di build. Isi .env.local lalu restart dev server.",
+      message: isProduction
+        ? "Variabel Supabase tidak ada di build Vercel. Buka Vercel → Settings → Environment Variables, tambahkan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY, lalu Redeploy."
+        : "Variabel env Supabase tidak ditemukan di build. Isi .env.local lalu restart dev server.",
     };
   }
 
@@ -77,7 +81,7 @@ export function SupabaseConnectionStatus() {
           setState("error");
           setMessage(
             data.message ??
-              "Supabase belum dikonfigurasi di .env.local. Restart dev server setelah mengubah env.",
+              "Supabase belum dikonfigurasi. Set env di Vercel (production) atau .env.local (lokal), lalu redeploy/restart.",
           );
           return;
         }

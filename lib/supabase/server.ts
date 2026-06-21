@@ -2,20 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
-
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "placeholder-key";
+import {
+  getSupabaseAnonKey,
+  getSupabaseClientAnonKey,
+  getSupabaseClientUrl,
+  getSupabaseUrl,
+} from "@/lib/supabase/env";
 
 export async function createClient() {
+  const url = getSupabaseUrl() ?? getSupabaseClientUrl();
+  const key = getSupabaseAnonKey() ?? getSupabaseClientAnonKey();
+
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl, supabaseKey, {
+  return createServerClient(url, key, {
     global: {
-      fetch: createSupabaseFetch(supabaseKey),
+      fetch: createSupabaseFetch(key),
     },
     cookies: {
       getAll() {

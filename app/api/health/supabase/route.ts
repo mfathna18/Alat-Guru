@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  getSupabaseEnvDiagnostics,
   getSupabaseEnvIssues,
   getSupabaseUrl,
   isSupabaseConfigured,
@@ -9,6 +10,7 @@ import {
 
 export async function GET() {
   const envIssues = getSupabaseEnvIssues();
+  const diagnostics = getSupabaseEnvDiagnostics();
 
   if (!isSupabaseConfigured()) {
     return NextResponse.json(
@@ -16,9 +18,12 @@ export async function GET() {
         ok: false,
         configured: false,
         issues: envIssues,
+        diagnostics,
         message:
           envIssues[0]?.message ??
           "NEXT_PUBLIC_SUPABASE_URL harus berformat https://xxx.supabase.co",
+        hint:
+          "Jika env sudah diisi di Vercel: Deployments → Redeploy → hapus centang «Use existing Build Cache».",
       },
       { status: 503 },
     );
@@ -60,6 +65,7 @@ export async function GET() {
       {
         ok: false,
         configured: true,
+        diagnostics,
         message: err instanceof Error ? err.message : "Gagal menghubungkan Supabase",
       },
       { status: 502 },

@@ -2,22 +2,21 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
-
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "placeholder-key";
+import {
+  getSupabaseAnonKey,
+  getSupabaseClientAnonKey,
+  getSupabaseClientUrl,
+  getSupabaseUrl,
+  isSupabaseConfigured,
+} from "@/lib/supabase/env";
 
 export async function updateSession(request: NextRequest) {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-      !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
-  ) {
+  if (!isSupabaseConfigured()) {
     return NextResponse.next({ request });
   }
+
+  const supabaseUrl = getSupabaseUrl() ?? getSupabaseClientUrl();
+  const supabaseAnonKey = getSupabaseAnonKey() ?? getSupabaseClientAnonKey();
 
   let supabaseResponse = NextResponse.next({ request });
 

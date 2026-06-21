@@ -1,18 +1,20 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
-
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "placeholder-key";
+import {
+  getSupabaseAnonKey,
+  getSupabaseClientAnonKey,
+  getSupabaseClientUrl,
+  getSupabaseUrl,
+} from "@/lib/supabase/env";
 
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseKey, {
+  const url = getSupabaseUrl() ?? getSupabaseClientUrl();
+  const key = getSupabaseAnonKey() ?? getSupabaseClientAnonKey();
+
+  return createBrowserClient(url, key, {
     global: {
-      fetch: createSupabaseFetch(supabaseKey),
+      fetch: createSupabaseFetch(key),
     },
   });
 }
