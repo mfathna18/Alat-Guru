@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 import { getLoginUrl } from "@/lib/auth/site-url";
 
@@ -119,32 +119,22 @@ export function SupabaseConnectionStatus() {
     };
   }, []);
 
-  const Icon =
-    state === "loading"
-      ? Loader2
-      : state === "ok"
-        ? CheckCircle2
-        : AlertCircle;
+  if (state === "loading" || state === "ok") {
+    return null;
+  }
 
   const colorClass =
-    state === "ok"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
-      : state === "warn"
-        ? "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
-        : "border-destructive/30 bg-destructive/5 text-destructive";
+    state === "warn"
+      ? "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
+      : "border-destructive/30 bg-destructive/5 text-destructive";
 
   return (
     <div
       className={`mb-4 flex items-start gap-2 rounded-lg border px-3 py-2 text-xs ${colorClass}`}
       role="status"
     >
-      <Icon
-        className={`mt-0.5 size-4 shrink-0 ${state === "loading" ? "animate-spin" : ""}`}
-        aria-hidden
-      />
-      <p className="whitespace-pre-line">
-        {state === "loading" ? "Memeriksa koneksi Supabase…" : message}
-      </p>
+      <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p className="whitespace-pre-line">{message}</p>
     </div>
   );
 }
