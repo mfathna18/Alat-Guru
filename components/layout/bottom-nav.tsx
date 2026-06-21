@@ -3,27 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpen,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
-  Settings,
+  Menu,
   Users,
 } from "lucide-react";
 
+import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-const items = [
+const quickItems = [
   { title: "Beranda", href: "/dashboard", icon: LayoutDashboard },
   { title: "Kelas", href: "/kelas", icon: GraduationCap },
   { title: "Siswa", href: "/siswa", icon: Users },
-  { title: "TP", href: "/tp", icon: BookOpen },
   { title: "Nilai", href: "/nilai", icon: ClipboardList },
-  { title: "Atur", href: "/pengaturan", icon: Settings },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { toggleSidebar } = useSidebar();
 
   return (
     <nav
@@ -31,7 +30,7 @@ export function BottomNav() {
       aria-label="Navigasi utama"
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1">
-        {items.map((item) => {
+        {quickItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -53,6 +52,17 @@ export function BottomNav() {
             </li>
           );
         })}
+        <li className="flex-1">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="flex min-h-11 w-full min-w-11 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Buka menu lengkap"
+          >
+            <Menu className="size-5 shrink-0" aria-hidden />
+            <span className="truncate">Menu</span>
+          </button>
+        </li>
       </ul>
     </nav>
   );

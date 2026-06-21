@@ -39,12 +39,10 @@ export function DashboardChrome({
       <SubscriptionProvider access={subscriptionAccess}>
         <FeatureUsageTracker />
         <SidebarProvider>
-          <div className="hidden md:flex">
-            <AppSidebar isAdmin={isAdmin} />
-          </div>
+          <AppSidebar isAdmin={isAdmin} />
           <SidebarInset className="min-h-svh">
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1 hidden md:inline-flex" />
+              <SidebarTrigger className="-ml-1 md:inline-flex" />
               <Separator
                 orientation="vertical"
                 className="mr-2 hidden h-4 md:block"
