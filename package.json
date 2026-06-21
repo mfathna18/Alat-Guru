@@ -1,0 +1,53 @@
+{
+  "name": "teachers-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack -p 3000",
+    "dev:win": "scripts\\dev-win.cmd",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "test:midtrans": "node scripts/test-midtrans.mjs",
+    "seed:demo": "node scripts/seed-demo-data.mjs",
+    "seed:fill-nilai": "node scripts/fill-random-nilai.mjs",
+    "uat:e-rapor": "node scripts/uat-e-rapor.mjs"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@serwist/next": "^9.5.11",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-query-devtools": "^5.101.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.17.0",
+    "next": "16.2.9",
+    "next-themes": "^0.4.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "serwist": "^9.5.11",
+    "shadcn": "^4.11.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/jszip": "^3.4.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

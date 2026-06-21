@@ -1,0 +1,733 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* E-Rapor — pratinjau & cetak A4 */
+.rapor-a4 {
+  width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.rapor-watermark-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.rapor-watermark-layer img {
+  max-width: 70%;
+  max-height: 70%;
+  object-fit: contain;
+  opacity: 0.07;
+}
+
+/* Template MAN Semester Ganjil — serif dokumen resmi */
+.rapor-man-doc {
+  font-family: "Times New Roman", Times, serif;
+  color: #000;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rapor-man-doc table {
+  border-collapse: collapse;
+}
+
+/* Saat capture HTML → PDF */
+.rapor-pdf-capture .rapor-a4,
+.rapor-pdf-capture .rapor-print-page {
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Pratinjau rapor — skala isi konten (bukan kertas A4) */
+.rapor-preview-viewport {
+  max-width: 100%;
+}
+
+.rapor-preview-content {
+  --rapor-content-scale: 1;
+  width: 100%;
+  max-width: 210mm;
+}
+
+.rapor-content-scale-outer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.rapor-content-inner {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  transform: scale(var(--rapor-content-scale, 1));
+  transform-origin: top center;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: 210mm;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0;
+    padding: 0;
+    display: block !important;
+    background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  [data-radix-dialog-overlay],
+  [data-slot="dialog-overlay"] {
+    display: none !important;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="dialog-portal"],
+  [role="dialog"] {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    display: block !important;
+    flex: none !important;
+  }
+
+  #rapor-print-root,
+  #rapor-print-root * {
+    visibility: visible;
+  }
+
+  .rapor-preview-viewport,
+  .rapor-preview-content {
+    visibility: visible !important;
+    overflow: visible !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .rapor-content-scale-outer {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .rapor-preview-content,
+  .rapor-content-inner {
+    transform: none !important;
+    zoom: 1 !important;
+    --rapor-content-scale: 1 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  #rapor-print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 210mm;
+    max-width: none;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto;
+    padding: 0;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  #rapor-print-root.rapor-km-doc {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #rapor-print-root .rapor-a4,
+  #rapor-print-root .rapor-print-page {
+    width: 210mm;
+    max-width: 210mm;
+    min-height: auto;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  #rapor-print-root .rapor-print-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  #rapor-print-root .rapor-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .rapor-print-unit {
+    display: block !important;
+    width: 210mm;
+    max-width: 100%;
+    margin: 0 auto;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .rapor-pages > .rapor-print-unit:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .rapor-pages > .rapor-print-unit:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .rapor-bulk-student:not(:last-child) .rapor-pages > .rapor-print-unit:last-child {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  #rapor-print-root > .rapor-bulk-student:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  #rapor-print-root > .rapor-bulk-student:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .rapor-print-unit .rapor-content-scale-outer,
+  .rapor-print-unit .rapor-content-inner {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    page-break-inside: auto !important;
+    text-align: left !important;
+  }
+
+  .rapor-man-header,
+  .rapor-km-header {
+    text-align: center !important;
+  }
+
+  .rapor-man-page-body,
+  .rapor-man-biodata,
+  .rapor-man-biodata > div,
+  .rapor-man-biodata-row,
+  .rapor-man-section,
+  .rapor-man-section-title,
+  .rapor-man-section-heading,
+  .rapor-man-section-meta,
+  .rapor-man-legend,
+  .rapor-man-legend-title {
+    text-align: left !important;
+  }
+
+  .rapor-man-paragraph {
+    text-align: justify !important;
+  }
+
+  .rapor-man-date {
+    text-align: right !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-body,
+  #rapor-print-root.rapor-km-doc .rapor-km-section,
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata-row,
+  #rapor-print-root.rapor-km-doc .rapor-km-text-block {
+    text-align: left !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-section-title {
+    text-align: left !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-a4,
+  #rapor-print-root.rapor-km-doc.rapor-a4 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #rapor-print-root .rapor-man-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  #rapor-print-root .rapor-man-table {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+    page-break-inside: auto;
+  }
+
+  #rapor-print-root .rapor-man-table thead {
+    display: table-header-group;
+  }
+
+  #rapor-print-root .rapor-man-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #rapor-print-root .rapor-man-section,
+  #rapor-print-root .rapor-man-legend,
+  #rapor-print-root .rapor-man-footer {
+    break-inside: auto;
+    page-break-inside: auto;
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+  }
+
+  #rapor-print-root .rapor-man-signatures {
+    display: block !important;
+    break-inside: auto;
+    page-break-inside: auto;
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    text-align: center;
+  }
+
+  #rapor-print-root .rapor-man-signatures > div {
+    display: inline-block !important;
+    width: 33.33% !important;
+    vertical-align: top !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #rapor-print-root .rapor-man-table th,
+  #rapor-print-root .rapor-man-table td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  #rapor-print-root .rapor-man-table th.text-left,
+  #rapor-print-root .rapor-man-table td.text-left,
+  #rapor-print-root .rapor-man-table .section-row td,
+  #rapor-print-root .rapor-man-table .italic-row td {
+    text-align: left;
+  }
+
+  #rapor-print-root .rapor-man-table td.text-center,
+  #rapor-print-root .rapor-man-table th.text-center {
+    text-align: center;
+  }
+
+  #rapor-print-root.rapor-km-doc,
+  #rapor-print-root.rapor-km-doc .rapor-a4,
+  #rapor-print-root.rapor-km-doc .rapor-km-body,
+  #rapor-print-root.rapor-km-doc .rapor-km-table-wrap,
+  #rapor-print-root.rapor-km-doc .rapor-km-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-print-unit {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #rapor-print-root.rapor-km-doc {
+    font-size: 10pt !important;
+    line-height: 1.15 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    page-break-before: auto !important;
+    break-before: auto !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-content-scale-outer,
+  #rapor-print-root.rapor-km-doc .rapor-content-inner,
+  #rapor-print-root.rapor-km-doc .rapor-km-header,
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata,
+  #rapor-print-root.rapor-km-doc .rapor-km-section,
+  #rapor-print-root.rapor-km-doc .rapor-km-table-wrap,
+  #rapor-print-root.rapor-km-doc .rapor-km-table,
+  #rapor-print-root.rapor-km-doc .rapor-km-table tbody,
+  #rapor-print-root.rapor-km-doc .rapor-km-table thead,
+  #rapor-print-root.rapor-km-doc .rapor-km-footer,
+  #rapor-print-root.rapor-km-doc .rapor-km-signatures,
+  #rapor-print-root.rapor-km-doc .rapor-km-date {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    page-break-before: auto !important;
+    break-before: auto !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata-row {
+    display: block !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-signatures {
+    text-align: center !important;
+    font-size: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-signature-col {
+    display: inline-block !important;
+    width: 33.33% !important;
+    vertical-align: top !important;
+    font-size: 8pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header {
+    padding-bottom: 2px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-logo {
+    height: 28px !important;
+    width: 28px !important;
+    margin: 0 auto 1px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-sub {
+    font-size: 7pt !important;
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-school {
+    font-size: 9pt !important;
+    margin: 1px 0 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-address {
+    font-size: 7pt !important;
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-title {
+    font-size: 8pt !important;
+    margin: 3px 0 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-header-meta {
+    font-size: 7pt !important;
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata {
+    font-size: 10pt !important;
+    line-height: 1.15 !important;
+    row-gap: 0 !important;
+    column-gap: 8px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata-row {
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-biodata-label {
+    width: 88px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-section {
+    margin-bottom: 3px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-section-title {
+    font-size: 8pt !important;
+    line-height: 1.15 !important;
+    margin: 0 0 2px !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table-wrap {
+    overflow: hidden !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+    line-height: 1.15 !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table col.col-no {
+    width: 5% !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table col.col-mapel {
+    width: 22% !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table col.col-nilai {
+    width: 10% !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table col.col-capaian {
+    width: 63% !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table th,
+  #rapor-print-root.rapor-km-doc .rapor-km-table td {
+    padding: 2px 4px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table td.capaian-cell {
+    vertical-align: top !important;
+    text-align: left !important;
+    line-height: 1.15 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-table .nilai-sub {
+    font-size: 7pt !important;
+    margin-top: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-text-block {
+    font-size: 8pt !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-footer {
+    margin-top: 5px !important;
+    font-size: 8pt !important;
+    line-height: 1.15 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-date {
+    margin: 0 0 4px !important;
+    font-size: 8pt !important;
+    text-align: right !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-signatures {
+    display: block !important;
+    gap: 4px !important;
+    font-size: 0 !important;
+    text-align: center !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-signature-col p {
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-signature-gap {
+    display: block !important;
+    min-height: 3rem !important;
+    margin: 0 !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-signature-img {
+    display: block !important;
+    max-height: 3rem !important;
+    width: auto !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+  }
+
+  #rapor-print-root.rapor-km-doc .rapor-km-muted {
+    font-size: 7pt !important;
+  }
+}
