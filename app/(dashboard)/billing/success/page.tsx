@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 import { cn } from "@/lib/utils";
 
 export default function BillingSuccessPage() {
@@ -22,12 +23,14 @@ export default function BillingSuccessPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <Link
-            href="/billing"
-            className={cn(buttonVariants(), "min-h-11 inline-flex items-center justify-center")}
-          >
-            Lihat Status Langganan
-          </Link>
+          {SHOW_SUBSCRIPTION_UI ? (
+            <Link
+              href="/billing"
+              className={cn(buttonVariants(), "min-h-11 inline-flex items-center justify-center")}
+            >
+              Lihat Status Langganan
+            </Link>
+          ) : null}
           <Link
             href="/dashboard"
             className={cn(

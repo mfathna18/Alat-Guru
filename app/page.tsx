@@ -13,10 +13,11 @@ import {
 
 import { HomeFeaturesSection } from "@/components/landing/home-features";
 import { buttonVariants } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 import { WHATSAPP_ORDER_URL } from "@/lib/billing/subscription-plans";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 const highlights = [
   {
@@ -87,12 +88,14 @@ export default async function HomePage() {
             Alat Guru
           </Link>
           <div className="flex items-center gap-2">
-            <Link
-              href="/pricing"
-              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-            >
-              Harga
-            </Link>
+            {SHOW_SUBSCRIPTION_UI ? (
+              <Link
+                href="/pricing"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              >
+                Harga
+              </Link>
+            ) : null}
             <Link
               href="/login"
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
@@ -155,12 +158,14 @@ export default async function HomePage() {
               >
                 Mulai Gratis — Daftar Sekarang
               </Link>
-              <Link
-                href="/pricing"
-                className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
-              >
-                Lihat Paket & Harga
-              </Link>
+              {SHOW_SUBSCRIPTION_UI ? (
+                <Link
+                  href="/pricing"
+                  className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
+                >
+                  Lihat Paket & Harga
+                </Link>
+              ) : null}
             </div>
           </div>
 
@@ -200,8 +205,9 @@ export default async function HomePage() {
             Siap menghemat waktu administrasi?
           </h2>
           <p className="mx-auto mt-2 max-w-md text-orange-50/90">
-            Daftar akun gratis, lalu aktifkan paket langganan untuk akses penuh
-            semua fitur.
+            {SHOW_SUBSCRIPTION_UI
+              ? "Daftar akun gratis, lalu aktifkan paket langganan untuk akses penuh semua fitur."
+              : "Daftar akun gratis dan mulai kelola kelas, nilai, serta rapor dari satu dashboard."}
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -214,18 +220,20 @@ export default async function HomePage() {
               Daftar Sekarang
               <ArrowRight className="ml-2 size-4" />
             </Link>
-            <a
-              href={WHATSAPP_ORDER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ size: "lg", variant: "outline" }),
-                "min-w-[180px] border-white/60 bg-transparent text-white hover:bg-white/10 hover:text-white",
-              )}
-            >
-              <MessageCircle className="mr-2 size-4" />
-              Order via WhatsApp
-            </a>
+            {SHOW_SUBSCRIPTION_UI ? (
+              <a
+                href={WHATSAPP_ORDER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "min-w-[180px] border-white/60 bg-transparent text-white hover:bg-white/10 hover:text-white",
+                )}
+              >
+                <MessageCircle className="mr-2 size-4" />
+                Order via WhatsApp
+              </a>
+            ) : null}
           </div>
         </section>
       </main>

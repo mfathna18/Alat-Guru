@@ -48,6 +48,7 @@ export default function RegisterPage() {
       if (error) throw error;
 
       if (data.session) {
+        await fetch("/api/auth/provision-access", { method: "POST" });
         toast.success("Akun berhasil dibuat. Selamat datang!");
         router.push("/dashboard");
         router.refresh();

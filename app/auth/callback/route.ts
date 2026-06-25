@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { ensureSignupFullAccess } from "@/lib/auth/ensure-signup-full-access";
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
@@ -45,6 +46,12 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await ensureSignupFullAccess(user.id);
+      }
       return response;
     }
 

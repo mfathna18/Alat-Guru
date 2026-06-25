@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 import { isProfileSubscriptionExpired } from "@/lib/subscription/profile-access";
 import { createClient } from "@/lib/supabase/server";
 
@@ -46,12 +47,14 @@ export async function PremiumWrapper({
               Anda hanya dapat melihat halaman ini tanpa bisa menggunakan tools.
             </p>
           </div>
-          <Link
-            href="/billing"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Perpanjang Langganan
-          </Link>
+          {SHOW_SUBSCRIPTION_UI ? (
+            <Link
+              href="/billing"
+              className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Perpanjang Langganan
+            </Link>
+          ) : null}
         </div>
       </div>
 

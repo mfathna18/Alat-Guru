@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 
 const featureGroups = [
   {
@@ -149,7 +150,12 @@ export function HomeFeaturesSection() {
             {group.label}
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {group.features.map((feature) => (
+            {group.features
+              .filter(
+                (feature) =>
+                  SHOW_SUBSCRIPTION_UI || feature.title !== "Langganan",
+              )
+              .map((feature) => (
               <Card key={feature.title} className="h-full">
                 <CardHeader className="pb-2">
                   <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -163,7 +169,7 @@ export function HomeFeaturesSection() {
                   </CardDescription>
                 </CardContent>
               </Card>
-            ))}
+              ))}
           </div>
         </section>
       ))}

@@ -34,6 +34,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 
 const navItems = [
   {
@@ -138,6 +139,9 @@ interface AppSidebarProps {
 export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  const visibleNavItems = SHOW_SUBSCRIPTION_UI
+    ? navItems
+    : navItems.filter((item) => item.href !== "/billing");
 
   React.useEffect(() => {
     if (isMobile) {
@@ -171,7 +175,7 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
           <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const isActive =
                   pathname === item.href ||
                   (item.href !== "/dashboard" &&

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, Clock } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { SHOW_SUBSCRIPTION_UI } from "@/lib/billing/subscription-ui";
 import type { SubscriptionAccess } from "@/lib/billing/types";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,10 @@ export function SubscriptionBanner({
   showCta = true,
   className,
 }: SubscriptionBannerProps) {
+  if (!SHOW_SUBSCRIPTION_UI) {
+    return null;
+  }
+
   if (!access.message) {
     return null;
   }
