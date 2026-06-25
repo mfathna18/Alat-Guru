@@ -6,7 +6,10 @@ export interface SignupDemoSeedResult {
   kelas?: string;
   siswa?: number;
   mapel?: number;
+  indikator?: number;
   nilai?: number;
+  absensi?: number;
+  raporMapel?: number;
 }
 
 /**

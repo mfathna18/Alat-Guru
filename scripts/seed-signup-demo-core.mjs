@@ -1,135 +1,79 @@
 /**
  * Data contoh otomatis untuk user baru — dipanggil saat registrasi.
- * 1 kelas demo, 8 siswa, modul, TP, nilai, absensi, rapor & sikap.
+ * 1 kelas SMA X-A (Contoh), 40 siswa, mapel MAN IPS, TP + nilai,
+ * absensi Juni, sikap spiritual/sosial, dan e-rapor lengkap.
  */
 import {
   batchInsert,
   batchUpsert,
-  buildNilaiRowsForIndikators,
-  EKSKUL_DEMO,
-  EKSKUL_PREDIKAT,
+  buildJuneAbsensiRows,
+  buildNilaiRowsFull,
   pick,
   randInt,
-  randScore,
-  SIKAP_SOSIAL_NOTES,
-  SIKAP_SPIRITUAL_NOTES,
+  seedFullRaporAndSikap,
+  seedManMapel,
+  seedTpForKelas,
 } from "./seed-helpers.mjs";
 
-const DEMO_KELAS_NAME = "VII-A (Contoh)";
-const DEMO_STUDENT_COUNT = 8;
+const DEMO_KELAS_NAME = "X-A (Contoh)";
+const DEMO_STUDENT_COUNT = 40;
 const TAHUN_AJARAN = "2025/2026";
 const BOBOT = { formatif: 30, sumatifLm: 40, sas: 30 };
-
-const DEMO_MAPEL_SMP = [
-  "Matematika",
-  "Bahasa Indonesia",
-  "Ilmu Pengetahuan Alam",
-  "Bahasa Inggris",
-];
-
-const MODUL_DEMO = [
-  "Bilangan Berpangkat dan Bentuk Akar",
-  "Persamaan Linear Satu Variabel",
-  "Relasi dan Fungsi",
-  "Statistika — Penyajian Data",
-];
-
-const TP_DEMO = [
-  {
-    kode: "TP1",
-    deskripsi:
-      "Peserta didik mampu menggunakan sifat bilangan berpangkat dalam operasi hitung.",
-    indikators: [
-      { kode: "1.1", deskripsi: "Menyederhanakan bentuk bilangan berpangkat bulat." },
-      { kode: "1.2", deskripsi: "Menentukan nilai bilangan berpangkat rasional sederhana." },
-    ],
-    lm: 0,
-  },
-  {
-    kode: "TP2",
-    deskripsi:
-      "Peserta didik mampu menyelesaikan persamaan linear satu variabel.",
-    indikators: [
-      { kode: "2.1", deskripsi: "Menyelesaikan persamaan linear satu variabel." },
-      { kode: "2.2", deskripsi: "Menyelesaikan masalah kontekstual berbentuk persamaan linear." },
-    ],
-    lm: 0,
-  },
-];
-
-const LM_DEMO = [
-  { kode: "LM1", judul: "Bilangan dan Aljabar" },
-  { kode: "LM2", judul: "Geometri dan Statistika" },
-];
+const MIN_DEMO_STUDENTS = 40;
 
 const DEPAN = [
-  "Ahmad", "Budi", "Citra", "Dewi", "Eko", "Fitri", "Gita", "Hadi",
+  "Ahmad", "Budi", "Citra", "Dewi", "Eko", "Fitri", "Gita", "Hadi", "Indra", "Joko",
+  "Kartika", "Lina", "Maya", "Nadia", "Oki", "Putri", "Rafi", "Sari", "Taufik", "Umar",
+  "Vina", "Wulan", "Yoga", "Zahra", "Agus", "Bayu", "Candra", "Dian", "Eka", "Farhan",
+  "Galih", "Hana", "Irfan", "Jihan", "Kevin", "Laras", "Mirza", "Nisa", "Omar", "Prita",
 ];
 
 const BELAKANG = [
   "Saputra", "Wijaya", "Pratama", "Santoso", "Hidayat", "Nugroho", "Setiawan", "Kusuma",
+  "Permata", "Lestari", "Anggraini", "Mahardika", "Ramadhan", "Susanto", "Wibowo", "Utami",
+  "Purnama", "Cahyono", "Maulana", "Rizki",
 ];
 
 function randomNisn() {
   return String(randInt(1000000000, 9999999999));
 }
 
-function computeRaporScores() {
-  const fmt = randScore();
-  const sts = randScore();
-  const sas = randScore();
-  const nilai_akhir = Math.round(
-    (fmt * BOBOT.formatif + sts * BOBOT.sumatifLm + sas * BOBOT.sas) / 100,
-  );
-  return {
-    nilai_formatif: fmt,
-    nilai_sumatif_lm: sts,
-    nilai_sas: sas,
-    nilai_akhir,
-    nilai_pengetahuan: Math.round((fmt + sas) / 2),
-    nilai_keterampilan: Math.round((sts + sas) / 2),
-    deskripsi_capaian: `Menunjukkan penguasaan ${nilai_akhir >= 85 ? "sangat baik" : nilai_akhir >= 70 ? "baik" : "cukup"} pada materi semester ini.`,
-  };
-}
+async function clearIncompleteDemoKelas(supabase, guruId) {
+  const { data: kelasRows, error } = await supabase
+    .from("kelas")
+    .select("id, nama_kelas")
+    .eq("id_guru", guruId);
 
-async function ensureMapelSmp(supabase, guruId) {
-  const mapelByName = new Map();
+  if (error) throw error;
+  if (!kelasRows?.length) return false;
 
-  for (const nama of DEMO_MAPEL_SMP) {
-    const { data: existing } = await supabase
-      .from("mata_pelajaran")
-      .select("id,nama_mapel")
-      .eq("id_guru", guruId)
-      .ilike("nama_mapel", nama)
-      .maybeSingle();
+  const demoKelas = kelasRows.filter((k) => k.nama_kelas.includes("(Contoh)"));
+  const hasRealKelas = kelasRows.some((k) => !k.nama_kelas.includes("(Contoh)"));
 
-    if (existing) {
-      mapelByName.set(nama, existing.id);
-      continue;
-    }
-
-    const { data: created, error } = await supabase
-      .from("mata_pelajaran")
-      .insert({
-        id_guru: guruId,
-        nama_mapel: nama,
-        is_default: nama === "Matematika",
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (error) throw error;
-    mapelByName.set(nama, created.id);
+  if (hasRealKelas) {
+    return true;
   }
 
-  return {
-    matematikaId: mapelByName.get("Matematika"),
-    allMapel: DEMO_MAPEL_SMP.map((nama) => ({
-      id: mapelByName.get(nama),
-      nama_mapel: nama,
-    })),
-  };
+  if (demoKelas.length !== kelasRows.length) {
+    return true;
+  }
+
+  for (const kelas of demoKelas) {
+    const { count, error: countErr } = await supabase
+      .from("siswa")
+      .select("id", { count: "exact", head: true })
+      .eq("id_kelas", kelas.id)
+      .eq("is_deleted", false);
+
+    if (countErr) throw countErr;
+    if ((count ?? 0) >= MIN_DEMO_STUDENTS) {
+      return true;
+    }
+
+    await supabase.from("kelas").delete().eq("id", kelas.id);
+  }
+
+  return false;
 }
 
 /**
@@ -146,13 +90,8 @@ export async function seedSignupDemoForAuthUser(supabase, authUserId) {
   if (guruErr) throw guruErr;
   if (!guru) return { seeded: false, reason: "guru_not_found" };
 
-  const { count: kelasCount, error: kelasCountErr } = await supabase
-    .from("kelas")
-    .select("id", { count: "exact", head: true })
-    .eq("id_guru", guru.id);
-
-  if (kelasCountErr) throw kelasCountErr;
-  if ((kelasCount ?? 0) > 0) {
+  const alreadyHasData = await clearIncompleteDemoKelas(supabase, guru.id);
+  if (alreadyHasData) {
     return { seeded: false, reason: "already_has_data" };
   }
 
@@ -160,12 +99,12 @@ export async function seedSignupDemoForAuthUser(supabase, authUserId) {
 
   const pengaturanBase = {
     id_guru: guruId,
-    nama_sekolah: "SMP Negeri 1 Contoh (Data Demo)",
+    nama_sekolah: "MAN 1 Demo Kurikulum Merdeka (Data Contoh)",
     tahun_ajaran: TAHUN_AJARAN,
-    nama_kepsek: "Dr. Siti Aminah, M.Pd.",
+    nama_kepsek: "Dr. Ahmad Fauzi, M.Pd.",
     nip_kepsek: "196801011990031001",
-    jenjang: "SMP",
-    alamat_sekolah: "Jl. Pendidikan No. 45, Kota Demo",
+    jenjang: "SMA",
+    alamat_sekolah: "Jl. Pendidikan No. 12, Kota Demo",
     kabupaten_kota: "Kota Demo",
     provinsi: "Jawa Tengah",
     nama_wali_kelas: guru.nama_guru,
@@ -197,17 +136,25 @@ export async function seedSignupDemoForAuthUser(supabase, authUserId) {
     await supabase.from("pengaturan_sekolah").insert(pengaturanBase);
   }
 
-  const { matematikaId, allMapel } = await ensureMapelSmp(supabase, guruId);
-  if (!matematikaId) throw new Error("Mapel Matematika gagal dibuat");
+  await seedManMapel(supabase, guruId);
+  const { data: mapelFull, error: mapelErr } = await supabase
+    .from("mata_pelajaran")
+    .select("id, nama_mapel, is_group_header")
+    .eq("id_guru", guruId)
+    .eq("is_active", true);
+  if (mapelErr) throw mapelErr;
+
+  const mapelList = mapelFull ?? [];
+  const scorableMapel = mapelList.filter((m) => !m.is_group_header);
 
   const { data: kelas, error: kelasErr } = await supabase
     .from("kelas")
     .insert({
       id_guru: guruId,
       nama_kelas: DEMO_KELAS_NAME,
-      jenjang: "SMP",
-      fase: "D",
-      tingkat: "7",
+      jenjang: "SMA",
+      fase: "F",
+      tingkat: "10",
       rombel: "A",
     })
     .select("id,nama_kelas,tingkat")
@@ -215,52 +162,22 @@ export async function seedSignupDemoForAuthUser(supabase, authUserId) {
 
   if (kelasErr) throw kelasErr;
 
-  const modulRows = MODUL_DEMO.map((judul, i) => ({
-    id_guru: guruId,
-    id_kelas: kelas.id,
-    urutan: i + 1,
-    judul,
-  }));
-  const { data: modulList, error: modulErr } = await supabase
-    .from("modul_ajar")
-    .insert(modulRows)
-    .select("id,urutan");
-  if (modulErr) throw modulErr;
-
-  const progressRows = (modulList ?? []).map((modul, i) => ({
-    id_kelas: kelas.id,
-    id_modul: modul.id,
-    selesai: i < 2,
-  }));
-  await batchInsert(supabase, "kelas_modul_progress", progressRows);
-
-  for (const mapel of allMapel) {
-    await supabase.from("kelas_mata_pelajaran").upsert(
-      {
-        id_kelas: kelas.id,
-        id_mata_pelajaran: mapel.id,
-        id_guru_pengampu: guruId,
-      },
-      { onConflict: "id_kelas,id_mata_pelajaran" },
-    );
-  }
-
   const siswaRows = [];
   for (let i = 1; i <= DEMO_STUDENT_COUNT; i++) {
     const jk = Math.random() < 0.5 ? "L" : "P";
     siswaRows.push({
       id_kelas: kelas.id,
       nisn: randomNisn(),
-      nis: `7${String(i).padStart(2, "0")}${i}`,
+      nis: `10${String(i).padStart(2, "0")}${i}`,
       nama_siswa: `${DEPAN[i - 1]} ${pick(BELAKANG)}`,
       jenis_kelamin: jk,
-      tempat_lahir: pick(["Jakarta", "Bandung", "Semarang"]),
-      tanggal_lahir: `2012-${String(randInt(1, 12)).padStart(2, "0")}-${String(randInt(1, 28)).padStart(2, "0")}`,
+      tempat_lahir: pick(["Jakarta", "Bandung", "Surabaya", "Semarang", "Yogyakarta"]),
+      tanggal_lahir: `${randInt(2008, 2009)}-${String(randInt(1, 12)).padStart(2, "0")}-${String(randInt(1, 28)).padStart(2, "0")}`,
       nama_ayah: `Bapak ${pick(BELAKANG)}`,
       nama_ibu: `Ibu ${pick(BELAKANG)}`,
-      alamat: `Jl. Merdeka No. ${randInt(1, 50)}, Kota Demo`,
-      anak_ke: 1,
-      jumlah_saudara: randInt(0, 3),
+      alamat: `Jl. Merdeka No. ${randInt(1, 200)}, Kota Demo`,
+      anak_ke: randInt(1, 3),
+      jumlah_saudara: randInt(0, 4),
       is_deleted: false,
     });
   }
@@ -271,221 +188,34 @@ export async function seedSignupDemoForAuthUser(supabase, authUserId) {
     .select("id,id_kelas");
   if (siswaErr) throw siswaErr;
 
-  const lmInserts = LM_DEMO.map((lm, idx) => ({
-    id_kelas: kelas.id,
-    id_mata_pelajaran: matematikaId,
-    semester: 1,
-    kode_lm: lm.kode,
-    judul_lm: lm.judul,
-    urutan: idx + 1,
-  }));
-  const { data: lmList, error: lmErr } = await supabase
-    .from("lingkup_materi")
-    .insert(lmInserts)
-    .select("id,kode_lm");
-  if (lmErr) throw lmErr;
+  const indikators = await seedTpForKelas(supabase, kelas.id, scorableMapel);
+  const indikatorByKelas = new Map([[kelas.id, indikators]]);
 
-  const kelasIndikators = [];
-  for (const tpDef of TP_DEMO) {
-    const lmId = lmList[tpDef.lm].id;
-    const { data: tp, error: tpErr } = await supabase
-      .from("tujuan_pembelajaran")
-      .insert({
-        id_kelas: kelas.id,
-        id_mata_pelajaran: matematikaId,
-        id_lingkup_materi: lmId,
-        semester: 1,
-        kode_tp: tpDef.kode,
-        deskripsi_tp: tpDef.deskripsi,
-      })
-      .select("id")
-      .single();
-    if (tpErr) throw tpErr;
+  const nilaiRows = buildNilaiRowsFull(allSiswa, indikatorByKelas);
+  await batchInsert(supabase, "nilai", nilaiRows, 150);
 
-    await supabase.from("rubrik").insert({
-      id_tp: tp.id,
-      skala_penilaian: "ANGKA",
-    });
+  const absensiRows = buildJuneAbsensiRows(allSiswa);
+  await batchInsert(supabase, "absensi", absensiRows, 150);
 
-    for (const ind of tpDef.indikators) {
-      const { data: indRow, error: indErr } = await supabase
-        .from("indikator")
-        .insert({
-          id_tp: tp.id,
-          kode_indikator: ind.kode,
-          deskripsi_indikator: ind.deskripsi,
-        })
-        .select("id")
-        .single();
-      if (indErr) throw indErr;
-      kelasIndikators.push({ id: indRow.id, lmId });
-    }
-  }
-
-  const semester2Tp = TP_DEMO.slice(0, 1).map((tpDef) => ({
-    id_kelas: kelas.id,
-    id_mata_pelajaran: matematikaId,
-    semester: 2,
-    kode_tp: `S2-${tpDef.kode}`,
-    deskripsi_tp: `[Semester 2] ${tpDef.deskripsi}`,
-  }));
-  const { data: tpS2, error: tpS2Err } = await supabase
-    .from("tujuan_pembelajaran")
-    .insert(semester2Tp)
-    .select("id");
-  if (tpS2Err) throw tpS2Err;
-
-  for (const tp of tpS2 ?? []) {
-    await supabase.from("rubrik").insert({ id_tp: tp.id, skala_penilaian: "ANGKA" });
-    const { data: indRow } = await supabase
-      .from("indikator")
-      .insert({
-        id_tp: tp.id,
-        kode_indikator: "1",
-        deskripsi_indikator: "Indikator capaian semester 2.",
-      })
-      .select("id")
-      .single();
-    if (indRow) kelasIndikators.push({ id: indRow.id, lmId: null });
-  }
-
-  const indikatorByKelas = new Map([[kelas.id, kelasIndikators]]);
-  const nilaiRows = buildNilaiRowsForIndikators(allSiswa, indikatorByKelas);
-  await batchInsert(supabase, "nilai", nilaiRows, 100);
-
-  const absensiRows = [];
-  const today = new Date();
-  for (const siswa of allSiswa) {
-    for (let d = 0; d < 12; d++) {
-      const dt = new Date(today);
-      dt.setDate(dt.getDate() - d);
-      if (dt.getDay() === 0 || dt.getDay() === 6) continue;
-      const r = Math.random();
-      let status = "H";
-      if (r > 0.9) status = "A";
-      else if (r > 0.84) status = "S";
-      else if (r > 0.78) status = "I";
-      absensiRows.push({
-        id_siswa: siswa.id,
-        tanggal: dt.toISOString().slice(0, 10),
-        status,
-      });
-    }
-  }
-  await batchInsert(supabase, "absensi", absensiRows, 100);
-
-  const raporMapelRows = [];
-  for (const semester of [1, 2]) {
-    for (const siswa of allSiswa) {
-      for (const mapel of allMapel) {
-        raporMapelRows.push({
-          id_siswa: siswa.id,
-          id_kelas: siswa.id_kelas,
-          id_mata_pelajaran: mapel.id,
-          id_guru: guruId,
-          semester,
-          tahun_ajaran: TAHUN_AJARAN,
-          deskripsi_sumber: "auto",
-          ...computeRaporScores(),
-        });
-      }
-    }
-  }
-  await batchUpsert(
-    supabase,
-    "rapor_mapel",
-    raporMapelRows,
-    "id_siswa,id_mata_pelajaran,semester,tahun_ajaran",
-    80,
-  );
-
-  const eRaporRows = [];
-  for (const semester of [1, 2]) {
-    for (const siswa of allSiswa) {
-      eRaporRows.push({
-        id_siswa: siswa.id,
-        id_kelas: siswa.id_kelas,
-        semester,
-        tahun_ajaran: TAHUN_AJARAN,
-        status: "draft",
-        sikap_spiritual: pick(SIKAP_SPIRITUAL_NOTES),
-        sikap_sosial: pick(SIKAP_SOSIAL_NOTES),
-        catatan_wali_kelas:
-          "Contoh catatan wali kelas — siswa menunjukkan perkembangan positif.",
-      });
-    }
-  }
-  await batchUpsert(
-    supabase,
-    "e_rapor",
-    eRaporRows,
-    "id_siswa,semester,tahun_ajaran",
-    80,
-  );
-
-  const ekskulIds = [];
-  for (const def of EKSKUL_DEMO.slice(0, 2)) {
-    const { data, error } = await supabase
-      .from("ekstrakurikuler")
-      .upsert(
-        {
-          id_guru: guruId,
-          nama_ekskul: def.nama,
-          pembina: def.pembina,
-          is_active: true,
-        },
-        { onConflict: "id_guru,nama_ekskul" },
-      )
-      .select("id")
-      .single();
-    if (error) throw error;
-    ekskulIds.push(data.id);
-  }
-
-  const siswaEkskulRows = [];
-  for (const siswa of allSiswa) {
-    for (const ekskulId of ekskulIds.slice(0, 1)) {
-      siswaEkskulRows.push({
-        id_siswa: siswa.id,
-        id_ekstrakurikuler: ekskulId,
-        semester: 1,
-        tahun_ajaran: TAHUN_AJARAN,
-        predikat: pick(EKSKUL_PREDIKAT),
-        deskripsi_capaian: "Aktif dalam kegiatan ekstrakurikuler sekolah.",
-      });
-    }
-  }
-  await batchUpsert(
-    supabase,
-    "siswa_ekstrakurikuler",
-    siswaEkskulRows,
-    "id_siswa,id_ekstrakurikuler,semester,tahun_ajaran",
-    80,
-  );
-
-  const kehadiranRows = allSiswa.map((siswa) => ({
-    id_siswa: siswa.id,
-    semester: 1,
-    tahun_ajaran: TAHUN_AJARAN,
-    sakit: randInt(0, 2),
-    izin: randInt(0, 2),
-    tanpa_keterangan: 0,
-    hari_efektif: 110,
-    sumber: "manual",
-  }));
-  await batchUpsert(
-    supabase,
-    "rapor_kehadiran",
-    kehadiranRows,
-    "id_siswa,semester,tahun_ajaran",
-    80,
-  );
+  const { raporMapelCount } = await seedFullRaporAndSikap(supabase, {
+    guruId,
+    kelasList: [kelas],
+    allSiswa,
+    scorableMapel,
+    mapelList,
+    tahunAjaran: TAHUN_AJARAN,
+    bobot: BOBOT,
+    includeDual: true,
+  });
 
   return {
     seeded: true,
     kelas: DEMO_KELAS_NAME,
     siswa: allSiswa.length,
-    mapel: allMapel.length,
+    mapel: scorableMapel.length,
+    indikator: indikators.length,
     nilai: nilaiRows.length,
+    absensi: absensiRows.length,
+    raporMapel: raporMapelCount,
   };
 }

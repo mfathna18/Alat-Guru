@@ -228,7 +228,10 @@ export function buildNilaiRowsForIndikators(siswaList, indikatorByKelas) {
   return nilaiRows;
 }
 
-function computeRaporScores(bobot = { formatif: 30, sumatifLm: 40, sas: 30 }, includeDual = true) {
+export function computeRaporScores(
+  bobot = { formatif: 30, sumatifLm: 40, sas: 30 },
+  includeDual = true,
+) {
   const fmt = randScore();
   const lm = randScore();
   const sas = randScore();
@@ -247,6 +250,329 @@ function computeRaporScores(bobot = { formatif: 30, sumatifLm: 40, sas: 30 }, in
     scores.nilai_keterampilan = Math.round((lm + sas) / 2);
   }
   return scores;
+}
+
+export function tpDefsForMapel(namaMapel, semester, mapelId) {
+  const prefix = semester === 1 ? "" : "S2-";
+  const slug = `M${mapelId}`;
+  return [
+    {
+      kode: `${prefix}${slug}-TP1`,
+      deskripsi: `Peserta didik mampu memahami konsep dasar ${namaMapel} pada semester ${semester}.`,
+      indikators: [
+        {
+          kode: "1.1",
+          deskripsi: `Menjelaskan materi pokok ${namaMapel} dengan benar.`,
+        },
+        {
+          kode: "1.2",
+          deskripsi: `Menerapkan konsep ${namaMapel} dalam latihan terbimbing.`,
+        },
+      ],
+    },
+    {
+      kode: `${prefix}${slug}-TP2`,
+      deskripsi: `Peserta didik mampu menganalisis dan menyelesaikan masalah ${namaMapel}.`,
+      indikators: [
+        {
+          kode: "2.1",
+          deskripsi: `Menganalisis masalah kontekstual berkaitan dengan ${namaMapel}.`,
+        },
+        {
+          kode: "2.2",
+          deskripsi: `Menyelesaikan soal ${namaMapel} tingkat menengah dengan tepat.`,
+        },
+      ],
+    },
+  ];
+}
+
+/** @returns {Promise<{ id: number }[]>} */
+export async function seedTpForKelas(supabase, kelasId, scorableMapel) {
+  const indikatorIds = [];
+
+  for (const semester of [1, 2]) {
+    const lmRows = scorableMapel.map((mapel, idx) => ({
+      id_kelas: kelasId,
+      id_mata_pelajaran: mapel.id,
+      semester,
+      kode_lm: "LM1",
+      judul_lm: `${mapel.nama_mapel} — Semester ${semester}`,
+      urutan: idx + 1,
+    }));
+    const { data: lmList, error: lmErr } = await supabase
+      .from("lingkup_materi")
+      .insert(lmRows)
+      .select("id,id_mata_pelajaran");
+    if (lmErr) throw lmErr;
+
+    const lmByMapel = new Map(lmList.map((lm) => [lm.id_mata_pelajaran, lm.id]));
+
+    for (const mapel of scorableMapel) {
+      const defs = tpDefsForMapel(mapel.nama_mapel, semester, mapel.id);
+      for (const tpDef of defs) {
+        const { data: tp, error: tpErr } = await supabase
+          .from("tujuan_pembelajaran")
+          .insert({
+            id_kelas: kelasId,
+            id_mata_pelajaran: mapel.id,
+            id_lingkup_materi: lmByMapel.get(mapel.id),
+            semester,
+            kode_tp: tpDef.kode,
+            deskripsi_tp: tpDef.deskripsi,
+          })
+          .select("id")
+          .single();
+        if (tpErr) throw tpErr;
+
+        const { error: rubErr } = await supabase.from("rubrik").insert({
+          id_tp: tp.id,
+          skala_penilaian: "ANGKA",
+          kriteria_json: null,
+        });
+        if (rubErr) throw rubErr;
+
+        for (const ind of tpDef.indikators) {
+          const { data: indRow, error: indErr } = await supabase
+            .from("indikator")
+            .insert({
+              id_tp: tp.id,
+              kode_indikator: ind.kode,
+              deskripsi_indikator: ind.deskripsi,
+            })
+            .select("id")
+            .single();
+          if (indErr) throw indErr;
+          indikatorIds.push({ id: indRow.id });
+        }
+      }
+    }
+  }
+
+  return indikatorIds;
+}
+
+export function buildNilaiRowsFull(siswaList, indikatorByKelas) {
+  const nilaiRows = [];
+  for (const siswa of siswaList) {
+    const indikators = indikatorByKelas.get(siswa.id_kelas) ?? [];
+    for (const { id: indId } of indikators) {
+      const base = randScore();
+      nilaiRows.push({
+        id_siswa: siswa.id,
+        id_indikator: indId,
+        jenis_asesmen: "FORMATIF",
+        skor_angka: base,
+        skor_kualitatif: null,
+        tipe_sumatif: null,
+        id_lingkup_materi: null,
+      });
+      nilaiRows.push({
+        id_siswa: siswa.id,
+        id_indikator: indId,
+        jenis_asesmen: "SUMATIF",
+        tipe_sumatif: "STS",
+        id_lingkup_materi: null,
+        skor_angka: randScore(),
+        skor_kualitatif: null,
+      });
+      nilaiRows.push({
+        id_siswa: siswa.id,
+        id_indikator: indId,
+        jenis_asesmen: "SUMATIF",
+        tipe_sumatif: "SAS",
+        id_lingkup_materi: null,
+        skor_angka: randScore(),
+        skor_kualitatif: null,
+      });
+      if (base < 70 && Math.random() < 0.65) {
+        nilaiRows.push({
+          id_siswa: siswa.id,
+          id_indikator: indId,
+          jenis_asesmen: "REMEDIAL",
+          skor_angka: randInt(65, 78),
+          skor_kualitatif: null,
+          tipe_sumatif: null,
+          id_lingkup_materi: null,
+        });
+      }
+      if (base >= 88 && Math.random() < 0.4) {
+        nilaiRows.push({
+          id_siswa: siswa.id,
+          id_indikator: indId,
+          jenis_asesmen: "PENGAYAAN",
+          skor_angka: randInt(88, 100),
+          skor_kualitatif: null,
+          tipe_sumatif: null,
+          id_lingkup_materi: null,
+        });
+      }
+    }
+  }
+  return nilaiRows;
+}
+
+/** Hari kerja dalam bulan tertentu (format YYYY-MM-DD, tanpa geser timezone). */
+export function getWeekdaysInMonth(year, monthIndex) {
+  const dates = [];
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, monthIndex, day);
+    if (d.getDay() !== 0 && d.getDay() !== 6) {
+      dates.push(
+        `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      );
+    }
+  }
+  return dates;
+}
+
+export function buildJuneAbsensiRows(siswaList, year = new Date().getFullYear()) {
+  const dates = getWeekdaysInMonth(year, 5);
+  const absensiRows = [];
+  for (const siswa of siswaList) {
+    for (const tanggal of dates) {
+      const r = Math.random();
+      let status = "H";
+      if (r > 0.92) status = "A";
+      else if (r > 0.86) status = "S";
+      else if (r > 0.8) status = "I";
+      absensiRows.push({
+        id_siswa: siswa.id,
+        tanggal,
+        status,
+      });
+    }
+  }
+  return absensiRows;
+}
+
+export async function seedFullRaporAndSikap(supabase, {
+  guruId,
+  kelasList,
+  allSiswa,
+  scorableMapel,
+  mapelList,
+  tahunAjaran = "2025/2026",
+  bobot = { formatif: 30, sumatifLm: 40, sas: 30 },
+  includeDual = true,
+}) {
+  const kmpRows = [];
+  for (const kelas of kelasList) {
+    for (const mapel of mapelList) {
+      kmpRows.push({
+        id_kelas: kelas.id,
+        id_mata_pelajaran: mapel.id,
+        id_guru_pengampu: guruId,
+      });
+    }
+  }
+  await batchUpsert(supabase, "kelas_mata_pelajaran", kmpRows, "id_kelas,id_mata_pelajaran", 100);
+
+  const raporMapelRows = [];
+  for (const semester of [1, 2]) {
+    for (const siswa of allSiswa) {
+      for (const mapel of scorableMapel) {
+        raporMapelRows.push({
+          id_siswa: siswa.id,
+          id_kelas: siswa.id_kelas,
+          id_mata_pelajaran: mapel.id,
+          id_guru: guruId,
+          semester,
+          tahun_ajaran: tahunAjaran,
+          deskripsi_sumber: "auto",
+          ...computeRaporScores(bobot, includeDual),
+        });
+      }
+    }
+  }
+  await batchUpsert(
+    supabase,
+    "rapor_mapel",
+    raporMapelRows,
+    "id_siswa,id_mata_pelajaran,semester,tahun_ajaran",
+    100,
+  );
+
+  const eRaporRows = [];
+  for (const semester of [1, 2]) {
+    for (const siswa of allSiswa) {
+      eRaporRows.push({
+        id_siswa: siswa.id,
+        id_kelas: siswa.id_kelas,
+        semester,
+        tahun_ajaran: tahunAjaran,
+        status: "draft",
+        sikap_spiritual: pick(SIKAP_SPIRITUAL_NOTES),
+        sikap_sosial: pick(SIKAP_SOSIAL_NOTES),
+        catatan_wali_kelas: `Semester ${semester}: ${pick(SIKAP_SOSIAL_NOTES)} Perlu dipertahankan dan ditingkatkan.`,
+      });
+    }
+  }
+  await batchUpsert(supabase, "e_rapor", eRaporRows, "id_siswa,semester,tahun_ajaran", 100);
+
+  const ekskulIds = [];
+  for (const def of EKSKUL_DEMO) {
+    const { data, error } = await supabase
+      .from("ekstrakurikuler")
+      .upsert(
+        { id_guru: guruId, nama_ekskul: def.nama, pembina: def.pembina, is_active: true },
+        { onConflict: "id_guru,nama_ekskul" },
+      )
+      .select("id")
+      .single();
+    if (error) throw error;
+    ekskulIds.push(data.id);
+  }
+
+  const siswaEkskulRows = [];
+  for (const semester of [1, 2]) {
+    for (const siswa of allSiswa) {
+      const chosen = [...ekskulIds].sort(() => Math.random() - 0.5).slice(0, randInt(1, 2));
+      for (const ekskulId of chosen) {
+        siswaEkskulRows.push({
+          id_siswa: siswa.id,
+          id_ekstrakurikuler: ekskulId,
+          semester,
+          tahun_ajaran: tahunAjaran,
+          predikat: pick(EKSKUL_PREDIKAT),
+          deskripsi_capaian: "Aktif dan menunjukkan perkembangan positif.",
+        });
+      }
+    }
+  }
+  await batchUpsert(
+    supabase,
+    "siswa_ekstrakurikuler",
+    siswaEkskulRows,
+    "id_siswa,id_ekstrakurikuler,semester,tahun_ajaran",
+    100,
+  );
+
+  const kehadiranRows = [];
+  for (const semester of [1, 2]) {
+    for (const siswa of allSiswa) {
+      kehadiranRows.push({
+        id_siswa: siswa.id,
+        semester,
+        tahun_ajaran: tahunAjaran,
+        sakit: randInt(0, 4),
+        izin: randInt(0, 3),
+        tanpa_keterangan: randInt(0, 2),
+        hari_efektif: 110,
+        sumber: "manual",
+      });
+    }
+  }
+  await batchUpsert(
+    supabase,
+    "rapor_kehadiran",
+    kehadiranRows,
+    "id_siswa,semester,tahun_ajaran",
+    100,
+  );
+
+  return { raporMapelCount: raporMapelRows.length };
 }
 
 /**
