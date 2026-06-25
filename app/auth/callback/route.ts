@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { ensureSignupFullAccess } from "@/lib/auth/ensure-signup-full-access";
+import { ensureSignupDemoData } from "@/lib/demo/seed-signup-demo";
 import { createSupabaseFetch } from "@/lib/supabase/custom-fetch";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser();
       if (user) {
         await ensureSignupFullAccess(user.id);
+        await ensureSignupDemoData(user.id);
       }
       return response;
     }

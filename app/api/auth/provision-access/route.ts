@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { ensureSignupFullAccess } from "@/lib/auth/ensure-signup-full-access";
+import { ensureSignupDemoData } from "@/lib/demo/seed-signup-demo";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-/** Aktifkan akses penuh setelah registrasi (fallback jika trigger DB belum dijalankan). */
+/** Aktifkan akses penuh + data contoh setelah registrasi. */
 export async function POST() {
   try {
     const supabase = await createClient();
@@ -21,7 +22,9 @@ export async function POST() {
     }
 
     await ensureSignupFullAccess(user.id);
-    return NextResponse.json({ ok: true });
+    const demo = await ensureSignupDemoData(user.id);
+
+    return NextResponse.json({ ok: true, demo });
   } catch (err) {
     return NextResponse.json(
       {

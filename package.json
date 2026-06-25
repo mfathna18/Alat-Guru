@@ -13,6 +13,7 @@
     "test:midtrans": "node scripts/test-midtrans.mjs",
     "seed:demo": "node scripts/seed-demo-data.mjs",
     "seed:rexor": "node scripts/seed-mock-rexor.mjs",
+    "seed:signup-demo": "node scripts/seed-signup-demo.mjs",
     "seed:fill-nilai": "node scripts/fill-random-nilai.mjs",
     "uat:e-rapor": "node scripts/uat-e-rapor.mjs"
   },
