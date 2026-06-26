@@ -8,7 +8,8 @@ import {
   mountKmRaporPrintBody,
 } from "@/lib/export/rapor/rapor-km-print-document";
 import { clampRaporContentScale } from "@/lib/export/rapor/rapor-content-scale";
-import { isMobilePrintEnvironment } from "@/lib/export/rapor/print-client";
+import { isMobilePrintEnvironment, openRaporPdfBlob } from "@/lib/export/rapor/print-client";
+import type { PrintRaporResult } from "@/lib/export/rapor/print-client";
 import { finalizeKmRaporTables } from "@/lib/export/rapor/rapor-km-table-utils";
 import {
   A4_HEIGHT_PX,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/export/rapor/rapor-print-document";
 
 export { A4_WIDTH_PX, waitForImages } from "@/lib/export/rapor/rapor-print-document";
+export type { PrintRaporResult } from "@/lib/export/rapor/print-client";
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
@@ -34,9 +36,10 @@ async function mountIsolatedCaptureFrame(
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "rapor-pdf-capture");
   iframe.setAttribute("aria-hidden", "true");
+  // Tetap di viewport — html2canvas Android tidak menangkap iframe di luar layar.
   iframe.style.cssText = [
     "position:fixed",
-    "left:-10000px",
+    "left:0",
     "top:0",
     `width:${A4_WIDTH_PX}px`,
     `height:${A4_HEIGHT_PX * 3}px`,
@@ -45,7 +48,7 @@ async function mountIsolatedCaptureFrame(
     "padding:0",
     "opacity:0.01",
     "pointer-events:none",
-    "z-index:2147483647",
+    "z-index:2147483646",
     "background:#ffffff",
     "overflow:visible",
   ].join(";");
@@ -60,7 +63,7 @@ async function mountIsolatedCaptureFrame(
 
   const mountOptions = {
     removeWatermark: false,
-    contentScale: options.contentScale,
+    contentScale: options.contentScale ?? 1,
   };
 
   await (isKmRaporRoot(rootEl)
@@ -114,6 +117,44 @@ async function captureElementToCanvas(element: HTMLElement): Promise<HTMLCanvasE
       el.style.overflow = "visible";
     },
   });
+}
+
+function appendCanvasFitOnePdfPage(
+  doc: jsPDF,
+  canvas: HTMLCanvasElement,
+  hasExistingPages: boolean,
+): { pagesAdded: number; hasPages: boolean } {
+  if (canvas.width < MIN_CANVAS_PX || canvas.height < MIN_CANVAS_PX) {
+    return { pagesAdded: 0, hasPages: hasExistingPages };
+  }
+
+  const maxW = A4_WIDTH_MM - 2 * PDF_MARGIN_MM;
+  const maxH = A4_HEIGHT_MM - 2 * PDF_MARGIN_MM;
+  const pxToMm = A4_WIDTH_MM / canvas.width;
+  const naturalW = A4_WIDTH_MM;
+  const naturalH = canvas.height * pxToMm;
+  const scale = Math.min(maxW / naturalW, maxH / naturalH, 1);
+  const drawW = naturalW * scale;
+  const drawH = naturalH * scale;
+  const x = (A4_WIDTH_MM - drawW) / 2;
+  const y = PDF_MARGIN_MM;
+
+  let hasPages = hasExistingPages;
+  if (hasPages) doc.addPage();
+  else hasPages = true;
+
+  doc.addImage(
+    canvas.toDataURL("image/jpeg", 0.92),
+    "JPEG",
+    x,
+    y,
+    drawW,
+    drawH,
+    undefined,
+    "FAST",
+  );
+
+  return { pagesAdded: 1, hasPages };
 }
 
 function appendCanvasToPdf(
@@ -207,10 +248,12 @@ export async function captureRaporDomToPdf(
     let totalPages = 0;
     let hasPdfPages = false;
 
+    await new Promise((r) => setTimeout(r, 250));
+
     for (let i = 0; i < pages.length; i += 1) {
       const page = pages[i]!;
       const canvas = await captureElementToCanvas(page);
-      const result = appendCanvasToPdf(doc, canvas, hasPdfPages);
+      const result = appendCanvasFitOnePdfPage(doc, canvas, hasPdfPages);
       hasPdfPages = result.hasPages;
       totalPages += result.pagesAdded;
     }
@@ -244,69 +287,25 @@ function buildPrintIframeStyle(): string {
   ].join(";");
 }
 
-/** Cetak via PDF embed — andal di Android/iOS (html2canvas → jsPDF → print PDF). */
-async function printRaporViaPdfEmbed(
+/** Mobile: buka PDF di tab baru — jangan print() dari iframe (preview kosong di Android). */
+async function printRaporOnMobile(
   rootEl: HTMLElement,
   options: { contentScale?: number } = {},
-): Promise<void> {
-  const { blob } = await captureRaporDomToPdf(rootEl, "rapor.pdf", options);
-  const url = URL.createObjectURL(blob);
-
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("title", "rapor-print-pdf");
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText =
-    "position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;z-index:-1";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  await new Promise<void>((resolve, reject) => {
-    let settled = false;
-
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      URL.revokeObjectURL(url);
-      iframe.remove();
-      resolve();
-    };
-
-    iframe.onload = () => {
-      window.setTimeout(() => {
-        try {
-          const win = iframe.contentWindow;
-          if (!win) {
-            finish();
-            reject(new Error("Cetak rapor tidak tersedia."));
-            return;
-          }
-          win.onafterprint = finish;
-          window.setTimeout(finish, 120_000);
-          win.focus();
-          win.print();
-        } catch (err) {
-          finish();
-          reject(err instanceof Error ? err : new Error("Gagal membuka dialog cetak."));
-        }
-      }, 400);
-    };
-
-    iframe.onerror = () => {
-      URL.revokeObjectURL(url);
-      iframe.remove();
-      reject(new Error("Gagal memuat PDF cetak."));
-    };
+): Promise<PrintRaporResult> {
+  const { blob } = await captureRaporDomToPdf(rootEl, "rapor.pdf", {
+    contentScale: 1,
+    ...options,
   });
+  return openRaporPdfBlob(blob, "rapor.pdf");
 }
 
-/** Cetak rapor via iframe tersembunyi — tanpa popup/tab baru. */
+/** Cetak rapor via iframe tersembunyi (desktop) atau PDF tab baru (mobile). */
 export async function printRaporElement(
   rootEl: HTMLElement,
   options: { contentScale?: number } = {},
-): Promise<void> {
+): Promise<PrintRaporResult> {
   if (isMobilePrintEnvironment()) {
-    await printRaporViaPdfEmbed(rootEl, options);
-    return;
+    return printRaporOnMobile(rootEl, options);
   }
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "rapor-print");
@@ -363,6 +362,7 @@ export async function printRaporElement(
         reject(err instanceof Error ? err : new Error("Gagal membuka dialog cetak."));
       }
     });
+    return { mode: "dialog" };
   } catch (err) {
     iframe.remove();
     throw err instanceof Error ? err : new Error("Gagal mencetak rapor.");

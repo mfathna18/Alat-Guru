@@ -19,6 +19,7 @@ import { RaporPreviewSkeleton } from "@/components/e-rapor/rapor-loading-skeleto
 import {
   RaporPreviewViewport,
   RaporPreviewZoomToolbar,
+  useRaporPreviewAutoFit,
   useRaporPreviewZoom,
 } from "@/components/e-rapor/rapor-preview-viewport";
 import { printRaporElement } from "@/lib/export/rapor/html-capture-pdf";
@@ -65,6 +66,24 @@ export function RaporPreviewDialog({
   const raporContainerRef = React.useRef<HTMLDivElement>(null);
   const [printBusy, setPrintBusy] = React.useState(false);
   const { zoom, zoomIn, zoomOut, resetZoom, setZoom } = useRaporPreviewZoom();
+  const { markUserAdjusted } = useRaporPreviewAutoFit(
+    raporContainerRef,
+    open && !!data,
+    setZoom,
+  );
+
+  const handleZoomIn = () => {
+    markUserAdjusted();
+    zoomIn();
+  };
+  const handleZoomOut = () => {
+    markUserAdjusted();
+    zoomOut();
+  };
+  const handleResetZoom = () => {
+    markUserAdjusted();
+    resetZoom();
+  };
 
   React.useEffect(() => {
     if (!open) setZoom(100);
@@ -97,7 +116,20 @@ export function RaporPreviewDialog({
     }
     setPrintBusy(true);
     try {
-      await printRaporElement(root, { contentScale: 1 });
+      const result = await printRaporElement(root, { contentScale: 1 });
+      if (result.mode === "pdf-tab") {
+        if (result.downloaded) {
+          toast.success(
+            "PDF rapor diunduh. Buka file lalu cetak dari aplikasi PDF.",
+            { duration: 8000 },
+          );
+        } else {
+          toast.success(
+            "PDF rapor dibuka di tab baru. Ketuk menu browser (⋮) → Cetak.",
+            { duration: 8000 },
+          );
+        }
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Gagal membuka dialog cetak.",
@@ -138,9 +170,9 @@ export function RaporPreviewDialog({
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <RaporPreviewZoomToolbar
                 zoom={zoom}
-                onZoomIn={zoomIn}
-                onZoomOut={zoomOut}
-                onReset={resetZoom}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onReset={handleResetZoom}
                 disabled={!data || isLoading}
               />
 

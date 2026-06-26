@@ -177,11 +177,14 @@
 /* Pratinjau rapor — skala isi konten (bukan kertas A4) */
 .rapor-preview-viewport {
   max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .rapor-preview-content {
   --rapor-content-scale: 1;
-  width: 100%;
+  width: 210mm;
+  min-width: 210mm;
   max-width: 210mm;
 }
 

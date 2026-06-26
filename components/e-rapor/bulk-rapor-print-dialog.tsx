@@ -8,6 +8,7 @@ import { RaporPreviewSkeleton } from "@/components/e-rapor/rapor-loading-skeleto
 import {
   RaporPreviewViewport,
   RaporPreviewZoomToolbar,
+  useRaporPreviewAutoFit,
   useRaporPreviewZoom,
 } from "@/components/e-rapor/rapor-preview-viewport";
 import { RaporRenderer } from "@/components/rapor/rapor-renderer";
@@ -64,6 +65,24 @@ export function BulkRaporPrintDialog({
   const [zipProgress, setZipProgress] = React.useState<string | null>(null);
   const [printBusy, setPrintBusy] = React.useState(false);
   const { zoom, zoomIn, zoomOut, resetZoom, setZoom } = useRaporPreviewZoom();
+  const { markUserAdjusted } = useRaporPreviewAutoFit(
+    bulkRootRef,
+    open && previews.length > 0,
+    setZoom,
+  );
+
+  const handleZoomIn = () => {
+    markUserAdjusted();
+    zoomIn();
+  };
+  const handleZoomOut = () => {
+    markUserAdjusted();
+    zoomOut();
+  };
+  const handleResetZoom = () => {
+    markUserAdjusted();
+    resetZoom();
+  };
 
   React.useEffect(() => {
     if (!open) setZoom(100);
@@ -121,7 +140,20 @@ export function BulkRaporPrintDialog({
     }
     setPrintBusy(true);
     try {
-      await printRaporElement(root, { contentScale: 1 });
+      const result = await printRaporElement(root, { contentScale: 1 });
+      if (result.mode === "pdf-tab") {
+        if (result.downloaded) {
+          toast.success(
+            "PDF rapor diunduh. Buka file lalu cetak dari aplikasi PDF.",
+            { duration: 8000 },
+          );
+        } else {
+          toast.success(
+            "PDF rapor dibuka di tab baru. Ketuk menu browser (⋮) → Cetak.",
+            { duration: 8000 },
+          );
+        }
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Gagal membuka dialog cetak.",
@@ -186,9 +218,9 @@ export function BulkRaporPrintDialog({
           </Button>
           <RaporPreviewZoomToolbar
             zoom={zoom}
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-            onReset={resetZoom}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onReset={handleResetZoom}
             disabled={loading || previews.length === 0}
           />
           <Button

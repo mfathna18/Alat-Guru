@@ -11,6 +11,49 @@ export const RAPOR_PREVIEW_ZOOM_MAX = 150;
 export const RAPOR_PREVIEW_ZOOM_STEP = 10;
 export const RAPOR_PREVIEW_ZOOM_DEFAULT = 100;
 
+/** Lebar referensi konten A4 di layar (px). */
+export const RAPOR_PREVIEW_A4_PX = 756;
+
+export function useRaporPreviewAutoFit(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+  setZoom: (value: number) => void,
+) {
+  const userAdjustedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!enabled) {
+      userAdjustedRef.current = false;
+      return;
+    }
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    const applyFit = () => {
+      if (userAdjustedRef.current) return;
+      const width = el.clientWidth;
+      if (width <= 0 || width >= RAPOR_PREVIEW_A4_PX) return;
+      const fit = Math.max(
+        RAPOR_PREVIEW_ZOOM_MIN,
+        Math.min(RAPOR_PREVIEW_ZOOM_DEFAULT, Math.floor((width / RAPOR_PREVIEW_A4_PX) * 100)),
+      );
+      setZoom(fit);
+    };
+
+    applyFit();
+    const observer = new ResizeObserver(applyFit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [containerRef, enabled, setZoom]);
+
+  const markUserAdjusted = React.useCallback(() => {
+    userAdjustedRef.current = true;
+  }, []);
+
+  return { markUserAdjusted };
+}
+
 export function useRaporPreviewZoom(initial = RAPOR_PREVIEW_ZOOM_DEFAULT) {
   const [zoom, setZoom] = React.useState(initial);
 
@@ -118,10 +161,13 @@ export function RaporPreviewViewport({
   return (
     <div
       ref={containerRef}
-      className={cn("rapor-preview-viewport overflow-x-auto py-1", className)}
+      className={cn(
+        "rapor-preview-viewport max-w-full overflow-x-auto overflow-y-visible py-1 [-webkit-overflow-scrolling:touch]",
+        className,
+      )}
     >
       <div
-        className="rapor-preview-content mx-auto w-full max-w-[210mm]"
+        className="rapor-preview-content mx-auto w-[210mm] min-w-[210mm] max-w-[210mm]"
         style={
           { "--rapor-content-scale": contentScale } as React.CSSProperties
         }
