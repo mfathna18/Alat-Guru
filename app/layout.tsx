@@ -26,6 +26,10 @@ export const metadata: Metadata = {
     "Kelola kelas, nilai, absensi, dan rapor semester — praktis untuk guru Indonesia.",
   applicationName: "Alat Guru",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "512x512" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
