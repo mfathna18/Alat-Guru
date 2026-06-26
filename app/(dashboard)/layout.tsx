@@ -80,7 +80,10 @@ export default async function DashboardLayout({
 
   const pathname = (await headers()).get("x-pathname") ?? "";
   const bypassPremium =
-    isAdmin || pathname === "/billing" || pathname.startsWith("/billing/");
+    isAdmin ||
+    pathname === "/billing" ||
+    pathname.startsWith("/billing/") ||
+    pathname === "/kritik-saran";
 
   return (
     <DashboardChrome

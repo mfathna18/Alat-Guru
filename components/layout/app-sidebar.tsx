@@ -14,6 +14,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   BarChart3,
+  MessageSquareText,
   Settings,
   Shield,
   Shuffle,
@@ -102,6 +103,12 @@ const navItems = [
     href: "/pengaturan",
     icon: Settings,
     description: "Profil sekolah, logo, dan tanda tangan",
+  },
+  {
+    title: "Kritik dan Saran",
+    href: "/kritik-saran",
+    icon: MessageSquareText,
+    description: "Laporkan bug atau sampaikan masukan via WhatsApp",
   },
 ];
 

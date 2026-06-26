@@ -86,6 +86,13 @@ export const TRACKABLE_FEATURES: TrackableFeature[] = [
     fill: "var(--chart-5)",
   },
   {
+    id: "kritik-saran",
+    menu: "Kritik dan Saran",
+    path: "/kritik-saran",
+    category: "Umum",
+    fill: "var(--chart-4)",
+  },
+  {
     id: "profil",
     menu: "Profil Guru",
     path: "/profil",
