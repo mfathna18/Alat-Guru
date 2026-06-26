@@ -1,5 +1,5 @@
 $root = Split-Path $PSScriptRoot -Parent
-$src = Join-Path $root "app\icon.png"
+$src = Join-Path $root "public\icon.png"
 $dest = Join-Path $root "public\favicon.ico"
 
 Add-Type -AssemblyName System.Drawing
