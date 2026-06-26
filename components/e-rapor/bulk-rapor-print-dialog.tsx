@@ -25,7 +25,6 @@ import {
 } from "@/lib/export/rapor/bulk-kelas-zip";
 import { fetchERaporPreview } from "@/lib/services/e-rapor";
 import { printRaporElement } from "@/lib/export/rapor/html-capture-pdf";
-import { percentToRaporContentScale } from "@/lib/export/rapor/rapor-content-scale";
 import { semesterLabel } from "@/lib/rapor/semester-labels";
 import type { RaporTemplateId } from "@/lib/rapor/types";
 import type { Siswa } from "@/lib/types/database";
@@ -122,9 +121,7 @@ export function BulkRaporPrintDialog({
     }
     setPrintBusy(true);
     try {
-      await printRaporElement(root, {
-        contentScale: percentToRaporContentScale(zoom),
-      });
+      await printRaporElement(root, { contentScale: 1 });
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Gagal membuka dialog cetak.",

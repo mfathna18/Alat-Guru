@@ -224,6 +224,25 @@ export async function captureRaporDomToPdf(
   }
 }
 
+/** Gaya iframe cetak — lebar A4 penuh agar layout mobile sama dengan desktop. */
+function buildPrintIframeStyle(): string {
+  return [
+    "position:fixed",
+    "left:0",
+    "top:0",
+    `width:${A4_WIDTH_PX}px`,
+    `height:${A4_HEIGHT_PX * 4}px`,
+    "border:0",
+    "margin:0",
+    "padding:0",
+    "opacity:0.01",
+    "pointer-events:none",
+    "z-index:2147483647",
+    "background:#ffffff",
+    "overflow:visible",
+  ].join(";");
+}
+
 /** Cetak rapor via iframe tersembunyi — tanpa popup/tab baru. */
 export async function printRaporElement(
   rootEl: HTMLElement,
@@ -232,18 +251,7 @@ export async function printRaporElement(
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "rapor-print");
   iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText = [
-    "position:fixed",
-    "right:0",
-    "bottom:0",
-    "width:0",
-    "height:0",
-    "border:0",
-    "margin:0",
-    "padding:0",
-    "opacity:0",
-    "pointer-events:none",
-  ].join(";");
+  iframe.style.cssText = buildPrintIframeStyle();
 
   document.body.appendChild(iframe);
 

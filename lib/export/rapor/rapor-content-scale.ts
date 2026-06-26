@@ -177,8 +177,13 @@ export function fitRaporContentToSingleA4Page(
 
   const maxHeightPx = A4_PRINTABLE_HEIGHT_MM * MM_TO_PX;
   const maxWidthPx = A4_PRINTABLE_WIDTH_MM * MM_TO_PX;
+  void inner.offsetHeight;
   const contentHeight = inner.scrollHeight;
-  const contentWidth = inner.offsetWidth || inner.scrollWidth;
+  const contentWidth = Math.max(
+    inner.scrollWidth,
+    inner.offsetWidth,
+    maxWidthPx,
+  );
 
   let autoScale = 1;
   if (contentHeight > maxHeightPx) {

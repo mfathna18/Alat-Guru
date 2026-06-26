@@ -509,7 +509,11 @@ export const RAPOR_MAN_PRINT_DOCUMENT_CSS = `
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
+  width: 210mm;
+  min-width: 210mm;
+  max-width: 210mm;
+  height: auto;
+  min-height: 0;
   background: #ffffff;
   color: #000000;
   -webkit-print-color-adjust: exact;
@@ -523,8 +527,15 @@ body {
 
 #rapor-print-root {
   width: 210mm;
-  max-width: 100%;
+  min-width: 210mm;
+  max-width: 210mm;
   margin: 0 auto;
+}
+
+.rapor-print-unit {
+  width: 210mm !important;
+  min-width: 210mm !important;
+  max-width: 210mm !important;
 }
 
 ${RAPOR_MAN_LAYOUT_CSS}

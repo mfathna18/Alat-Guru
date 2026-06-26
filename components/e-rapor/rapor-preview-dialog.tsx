@@ -22,7 +22,6 @@ import {
   useRaporPreviewZoom,
 } from "@/components/e-rapor/rapor-preview-viewport";
 import { printRaporElement } from "@/lib/export/rapor/html-capture-pdf";
-import { percentToRaporContentScale } from "@/lib/export/rapor/rapor-content-scale";
 import { useERaporPreview } from "@/lib/hooks/use-e-rapor";
 import type { RaporPreviewSource } from "@/lib/services/e-rapor";
 import { analyzeNaCompleteness } from "@/lib/e-rapor/na-completeness";
@@ -98,9 +97,7 @@ export function RaporPreviewDialog({
     }
     setPrintBusy(true);
     try {
-      await printRaporElement(root, {
-        contentScale: percentToRaporContentScale(zoom),
-      });
+      await printRaporElement(root, { contentScale: 1 });
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Gagal membuka dialog cetak.",

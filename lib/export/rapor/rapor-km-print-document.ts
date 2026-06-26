@@ -2,6 +2,7 @@ import { RAPOR_KM_PRINT_DOCUMENT_CSS } from "@/lib/export/rapor/rapor-km-capture
 import { fitAllRaporPrintUnits } from "@/lib/export/rapor/rapor-content-scale";
 import {
   cloneRaporRoot,
+  pinRaporPrintDocumentWidth,
   waitForImages,
 } from "@/lib/export/rapor/rapor-print-document";
 
@@ -38,6 +39,7 @@ export async function mountKmRaporPrintBody(
   }
 
   doc.body.appendChild(clone);
+  pinRaporPrintDocumentWidth(doc, clone);
   await waitForImages(doc);
   await new Promise((r) => setTimeout(r, 150));
 

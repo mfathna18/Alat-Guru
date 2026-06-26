@@ -189,6 +189,45 @@ export function writePrintDocumentShell(doc: Document): void {
   doc.body.style.height = "auto";
 }
 
+/** Kunci lebar dokumen cetak ke A4 — penting di mobile (iframe sempit memecah halaman). */
+export function pinRaporPrintDocumentWidth(doc: Document, root: HTMLElement): void {
+  const widthMm = "210mm";
+
+  doc.documentElement.style.width = widthMm;
+  doc.documentElement.style.minWidth = widthMm;
+  doc.documentElement.style.maxWidth = widthMm;
+  doc.body.style.width = widthMm;
+  doc.body.style.minWidth = widthMm;
+  doc.body.style.maxWidth = widthMm;
+  doc.body.style.margin = "0";
+  doc.body.style.padding = "0";
+
+  root.style.width = widthMm;
+  root.style.minWidth = widthMm;
+  root.style.maxWidth = widthMm;
+  root.style.margin = "0 auto";
+
+  root
+    .querySelectorAll<HTMLElement>(
+      ".rapor-print-unit, .rapor-a4, .rapor-print-page, .rapor-man-page, .rapor-km-body",
+    )
+    .forEach((el) => {
+      el.style.width = widthMm;
+      el.style.minWidth = widthMm;
+      el.style.maxWidth = widthMm;
+    });
+
+  root
+    .querySelectorAll<HTMLElement>(".rapor-content-inner, .rapor-content-scale-outer")
+    .forEach((el) => {
+      el.style.transform = "none";
+      el.style.zoom = "1";
+      el.style.setProperty("--rapor-content-scale", "1");
+      el.style.width = "100%";
+      el.style.maxWidth = widthMm;
+    });
+}
+
 export async function mountRaporPrintBody(
   rootEl: HTMLElement,
   doc: Document,
@@ -202,6 +241,7 @@ export async function mountRaporPrintBody(
   });
 
   doc.body.appendChild(clone);
+  pinRaporPrintDocumentWidth(doc, clone);
   await waitForImages(doc);
   await new Promise((r) => setTimeout(r, 150));
   finalizeRaporTables(clone);
