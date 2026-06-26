@@ -33,29 +33,16 @@ const CATEGORY_LABELS: Record<FeedbackCategory, string> = {
 export function whatsappFeedbackUrl(params: {
   category: FeedbackCategory;
   message: string;
-  userName?: string;
-  userEmail?: string;
-  pageUrl?: string;
 }): string {
   const trimmed = params.message.trim();
-  const lines = [
-    "Halo Admin Alat Guru,",
-    "",
-    `*${CATEGORY_LABELS[params.category]}*`,
-    "",
-    trimmed,
-  ];
-
-  if (params.userName || params.userEmail) {
-    lines.push("", "---", "Dari:");
-    if (params.userName) lines.push(`Nama: ${params.userName}`);
-    if (params.userEmail) lines.push(`Email: ${params.userEmail}`);
-  }
-
-  if (params.pageUrl) {
-    lines.push(`Halaman: ${params.pageUrl}`);
-  }
-
-  const text = encodeURIComponent(lines.join("\n"));
+  const text = encodeURIComponent(
+    [
+      "Halo Admin Alat Guru,",
+      "",
+      `*${CATEGORY_LABELS[params.category]}*`,
+      "",
+      trimmed,
+    ].join("\n"),
+  );
   return `${WHATSAPP_ORDER_URL}?text=${text}`;
 }

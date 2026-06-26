@@ -17,10 +17,5 @@ export default async function KritikSaranPage() {
     redirect("/login?redirect=/kritik-saran");
   }
 
-  const displayName =
-    summary.guru?.nama_guru ?? summary.email.split("@")[0] ?? "Guru";
-
-  return (
-    <KritikSaranForm userName={displayName} userEmail={summary.email} />
-  );
+  return <KritikSaranForm />;
 }

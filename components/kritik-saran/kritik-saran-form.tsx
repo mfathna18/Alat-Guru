@@ -27,12 +27,7 @@ const CATEGORY_ICONS = {
   lainnya: MessageSquareText,
 } as const;
 
-interface KritikSaranFormProps {
-  userName: string;
-  userEmail: string;
-}
-
-export function KritikSaranForm({ userName, userEmail }: KritikSaranFormProps) {
+export function KritikSaranForm() {
   const [category, setCategory] = React.useState<FeedbackCategory>("bug");
   const [message, setMessage] = React.useState("");
 
@@ -47,14 +42,7 @@ export function KritikSaranForm({ userName, userEmail }: KritikSaranFormProps) {
       return;
     }
 
-    const url = whatsappFeedbackUrl({
-      category,
-      message: trimmed,
-      userName,
-      userEmail,
-      pageUrl:
-        typeof window !== "undefined" ? window.location.href : undefined,
-    });
+    const url = whatsappFeedbackUrl({ category, message: trimmed });
 
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -138,18 +126,6 @@ export function KritikSaranForm({ userName, userEmail }: KritikSaranFormProps) {
               <p className="text-xs text-muted-foreground">
                 {message.length}/2000 karakter · minimal 10 karakter
               </p>
-            </div>
-
-            <div className="rounded-lg border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-              Dikirim atas nama{" "}
-              <span className="font-medium text-foreground">{userName}</span>
-              {userEmail ? (
-                <>
-                  {" "}
-                  (
-                  <span className="text-foreground">{userEmail}</span>)
-                </>
-              ) : null}
             </div>
 
             <Button type="submit" className="w-full sm:w-auto" size="lg">
