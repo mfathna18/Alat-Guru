@@ -8,6 +8,7 @@ import {
   mountKmRaporPrintBody,
 } from "@/lib/export/rapor/rapor-km-print-document";
 import { clampRaporContentScale } from "@/lib/export/rapor/rapor-content-scale";
+import { isMobilePrintEnvironment } from "@/lib/export/rapor/print-client";
 import { finalizeKmRaporTables } from "@/lib/export/rapor/rapor-km-table-utils";
 import {
   A4_HEIGHT_PX,
@@ -35,7 +36,7 @@ async function mountIsolatedCaptureFrame(
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText = [
     "position:fixed",
-    "left:0",
+    "left:-10000px",
     "top:0",
     `width:${A4_WIDTH_PX}px`,
     `height:${A4_HEIGHT_PX * 3}px`,
@@ -224,23 +225,78 @@ export async function captureRaporDomToPdf(
   }
 }
 
-/** Gaya iframe cetak — lebar A4 penuh agar layout mobile sama dengan desktop. */
+/** Gaya iframe cetak — lebar A4 penuh, di luar layar agar mobile tidak memotong. */
 function buildPrintIframeStyle(): string {
   return [
     "position:fixed",
-    "left:0",
+    "left:-10000px",
     "top:0",
     `width:${A4_WIDTH_PX}px`,
     `height:${A4_HEIGHT_PX * 4}px`,
     "border:0",
     "margin:0",
     "padding:0",
-    "opacity:0.01",
+    "opacity:0",
     "pointer-events:none",
-    "z-index:2147483647",
+    "z-index:-1",
     "background:#ffffff",
     "overflow:visible",
   ].join(";");
+}
+
+/** Cetak via PDF embed — andal di Android/iOS (html2canvas → jsPDF → print PDF). */
+async function printRaporViaPdfEmbed(
+  rootEl: HTMLElement,
+  options: { contentScale?: number } = {},
+): Promise<void> {
+  const { blob } = await captureRaporDomToPdf(rootEl, "rapor.pdf", options);
+  const url = URL.createObjectURL(blob);
+
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("title", "rapor-print-pdf");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;z-index:-1";
+  iframe.src = url;
+  document.body.appendChild(iframe);
+
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      iframe.remove();
+      resolve();
+    };
+
+    iframe.onload = () => {
+      window.setTimeout(() => {
+        try {
+          const win = iframe.contentWindow;
+          if (!win) {
+            finish();
+            reject(new Error("Cetak rapor tidak tersedia."));
+            return;
+          }
+          win.onafterprint = finish;
+          window.setTimeout(finish, 120_000);
+          win.focus();
+          win.print();
+        } catch (err) {
+          finish();
+          reject(err instanceof Error ? err : new Error("Gagal membuka dialog cetak."));
+        }
+      }, 400);
+    };
+
+    iframe.onerror = () => {
+      URL.revokeObjectURL(url);
+      iframe.remove();
+      reject(new Error("Gagal memuat PDF cetak."));
+    };
+  });
 }
 
 /** Cetak rapor via iframe tersembunyi — tanpa popup/tab baru. */
@@ -248,6 +304,10 @@ export async function printRaporElement(
   rootEl: HTMLElement,
   options: { contentScale?: number } = {},
 ): Promise<void> {
+  if (isMobilePrintEnvironment()) {
+    await printRaporViaPdfEmbed(rootEl, options);
+    return;
+  }
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "rapor-print");
   iframe.setAttribute("aria-hidden", "true");

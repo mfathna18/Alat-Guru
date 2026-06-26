@@ -8,6 +8,12 @@ import { fitAllRaporPrintUnits } from "@/lib/export/rapor/rapor-content-scale";
 export const A4_WIDTH_PX = 794;
 export const A4_HEIGHT_PX = 1123;
 
+const MM_TO_PX = 96 / 25.4;
+/** Lebar area tabel dalam halaman MAN (210mm − padding 14mm×2). */
+const MAN_TABLE_FALLBACK_WIDTH_PX = Math.round((210 - 28) * MM_TO_PX);
+
+export const RAPOR_PRINT_HEAD_META = `<meta charset="utf-8"><meta name="viewport" content="width=${A4_WIDTH_PX}, initial-scale=1">`;
+
 /** Persentase lebar kolom — total harus 100% */
 export const COL_WIDTH_RATIO: Record<string, number> = {
   "col-no": 0.08,
@@ -127,6 +133,25 @@ function pinBodyCellWidths(table: HTMLTableElement, colWidths: number[]): void {
   });
 }
 
+function resolveManTableWidthPx(table: HTMLTableElement): number {
+  const measured = table.getBoundingClientRect().width;
+  if (measured >= 200) return measured;
+
+  const page = table.closest(".rapor-man-page") as HTMLElement | null;
+  if (page) {
+    const pageW = page.getBoundingClientRect().width;
+    if (pageW >= 200) {
+      const view = page.ownerDocument?.defaultView;
+      const style = view?.getComputedStyle(page);
+      const pl = parseFloat(style?.paddingLeft ?? "0") || 0;
+      const pr = parseFloat(style?.paddingRight ?? "0") || 0;
+      return Math.max(pageW - pl - pr, 1);
+    }
+  }
+
+  return MAN_TABLE_FALLBACK_WIDTH_PX;
+}
+
 export function finalizeRaporTables(root: HTMLElement): void {
   root.querySelectorAll<HTMLTableElement>(".rapor-man-table").forEach((table) => {
     table.style.tableLayout = "fixed";
@@ -141,7 +166,7 @@ export function finalizeRaporTables(root: HTMLElement): void {
       wrap.style.overflow = "hidden";
     }
 
-    const tableWidth = table.getBoundingClientRect().width;
+    const tableWidth = resolveManTableWidthPx(table);
     if (tableWidth <= 0) return;
 
     const cols = Array.from(table.querySelectorAll("colgroup col"));
@@ -179,7 +204,7 @@ export function finalizeRaporTables(root: HTMLElement): void {
 export function writePrintDocumentShell(doc: Document): void {
   doc.open();
   doc.write(
-    `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Rapor</title><style>${RAPOR_MAN_PRINT_DOCUMENT_CSS}</style></head><body></body></html>`,
+    `<!DOCTYPE html><html lang="id"><head>${RAPOR_PRINT_HEAD_META}<title>Rapor</title><style>${RAPOR_MAN_PRINT_DOCUMENT_CSS}</style></head><body></body></html>`,
   );
   doc.close();
   doc.body.style.margin = "0";
@@ -192,13 +217,14 @@ export function writePrintDocumentShell(doc: Document): void {
 /** Kunci lebar dokumen cetak ke A4 — penting di mobile (iframe sempit memecah halaman). */
 export function pinRaporPrintDocumentWidth(doc: Document, root: HTMLElement): void {
   const widthMm = "210mm";
+  const widthPx = `${A4_WIDTH_PX}px`;
 
-  doc.documentElement.style.width = widthMm;
-  doc.documentElement.style.minWidth = widthMm;
-  doc.documentElement.style.maxWidth = widthMm;
-  doc.body.style.width = widthMm;
-  doc.body.style.minWidth = widthMm;
-  doc.body.style.maxWidth = widthMm;
+  doc.documentElement.style.width = widthPx;
+  doc.documentElement.style.minWidth = widthPx;
+  doc.documentElement.style.maxWidth = widthPx;
+  doc.body.style.width = widthPx;
+  doc.body.style.minWidth = widthPx;
+  doc.body.style.maxWidth = widthPx;
   doc.body.style.margin = "0";
   doc.body.style.padding = "0";
 
@@ -244,6 +270,7 @@ export async function mountRaporPrintBody(
   pinRaporPrintDocumentWidth(doc, clone);
   await waitForImages(doc);
   await new Promise((r) => setTimeout(r, 150));
+  void clone.offsetHeight;
   finalizeRaporTables(clone);
 
   fitAllRaporPrintUnits(clone, options.contentScale ?? 1);

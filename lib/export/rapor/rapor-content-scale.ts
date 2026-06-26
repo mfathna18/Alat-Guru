@@ -54,8 +54,9 @@ export const RAPOR_PRINT_CONTENT_SCALE_CSS = `
   max-width: 210mm;
   margin: 0 auto;
   text-align: left;
-  zoom: var(--rapor-content-scale, 1);
-  transform: none;
+  transform: scale(var(--rapor-content-scale, 1));
+  transform-origin: top left;
+  zoom: 1;
 }
 `;
 
@@ -108,7 +109,7 @@ export function applyRaporContentScale(root: HTMLElement, scale: number): void {
     });
 }
 
-/** Skala untuk dokumen cetak/PDF — zoom agar paginasi browser mengikuti ukuran visual. */
+/** Skala untuk dokumen cetak/PDF — transform (bukan zoom) agar kompatibel mobile. */
 export function applyRaporPrintScale(root: HTMLElement, scale: number): void {
   const normalized = clampRaporContentScale(scale);
   const inner = measureRaporContentInner(root);
@@ -116,16 +117,25 @@ export function applyRaporPrintScale(root: HTMLElement, scale: number): void {
 
   root.style.setProperty("--rapor-content-scale", String(normalized));
   inner.style.setProperty("--rapor-content-scale", String(normalized));
-  inner.style.zoom = String(normalized);
-  inner.style.transform = "none";
+  inner.style.zoom = "1";
+  inner.style.transform =
+    normalized === 1 ? "none" : `scale(${normalized})`;
+  inner.style.transformOrigin = "top left";
+  inner.style.width = "100%";
+  inner.style.textAlign = "left";
 
   if (outer) {
     outer.style.display = "block";
     outer.style.width = "100%";
-    outer.style.margin = "0 auto";
+    outer.style.margin = "0";
+    outer.style.padding = "0";
+    outer.style.overflow = "visible";
     outer.style.textAlign = "left";
+    outer.style.height =
+      normalized === 1
+        ? "auto"
+        : `${Math.ceil(inner.scrollHeight * normalized)}px`;
   }
-  inner.style.textAlign = "left";
 }
 
 function measureRaporContentInner(root: HTMLElement): HTMLElement {
@@ -179,11 +189,10 @@ export function fitRaporContentToSingleA4Page(
   const maxWidthPx = A4_PRINTABLE_WIDTH_MM * MM_TO_PX;
   void inner.offsetHeight;
   const contentHeight = inner.scrollHeight;
-  const contentWidth = Math.max(
-    inner.scrollWidth,
-    inner.offsetWidth,
-    maxWidthPx,
-  );
+  let contentWidth = Math.max(inner.scrollWidth, inner.offsetWidth);
+  if (contentWidth < 100) {
+    contentWidth = maxWidthPx;
+  }
 
   let autoScale = 1;
   if (contentHeight > maxHeightPx) {

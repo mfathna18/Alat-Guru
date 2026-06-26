@@ -3,6 +3,7 @@ import { fitAllRaporPrintUnits } from "@/lib/export/rapor/rapor-content-scale";
 import {
   cloneRaporRoot,
   pinRaporPrintDocumentWidth,
+  RAPOR_PRINT_HEAD_META,
   waitForImages,
 } from "@/lib/export/rapor/rapor-print-document";
 
@@ -12,7 +13,7 @@ export { finalizeKmRaporTables, KM_COL_WIDTH_RATIO } from "@/lib/export/rapor/ra
 export function writeKmPrintDocumentShell(doc: Document): void {
   doc.open();
   doc.write(
-    `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Rapor</title><style>${RAPOR_KM_PRINT_DOCUMENT_CSS}</style></head><body></body></html>`,
+    `<!DOCTYPE html><html lang="id"><head>${RAPOR_PRINT_HEAD_META}<title>Rapor</title><style>${RAPOR_KM_PRINT_DOCUMENT_CSS}</style></head><body></body></html>`,
   );
   doc.close();
   doc.body.style.margin = "0";
@@ -42,6 +43,7 @@ export async function mountKmRaporPrintBody(
   pinRaporPrintDocumentWidth(doc, clone);
   await waitForImages(doc);
   await new Promise((r) => setTimeout(r, 150));
+  void clone.offsetHeight;
 
   const { finalizeKmRaporTables } = await import("@/lib/export/rapor/rapor-km-table-utils");
   finalizeKmRaporTables(clone);
