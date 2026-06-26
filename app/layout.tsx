@@ -3,9 +3,15 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { PRODUCTION_SITE_ORIGIN } from "@/lib/auth/site-url";
+import { siteIconUrl } from "@/lib/site/icons";
 import { QueryProvider } from "@/providers/query-provider";
 
 import "./globals.css";
+
+const faviconUrl = siteIconUrl("/favicon.ico");
+const iconPngUrl = siteIconUrl("/icon.png");
+const appleIconUrl = siteIconUrl("/apple-icon.png");
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +24,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(PRODUCTION_SITE_ORIGIN),
   title: {
     default: "Alat Guru",
     template: "%s | Alat Guru",
@@ -28,11 +35,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: iconPngUrl, type: "image/png", sizes: "512x512" },
+      { url: faviconUrl, sizes: "any" },
     ],
-    shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: faviconUrl,
+    apple: [{ url: appleIconUrl, type: "image/png", sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,
@@ -59,9 +66,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="icon" href={iconPngUrl} type="image/png" sizes="512x512" />
+        <link rel="icon" href={faviconUrl} sizes="any" />
+        <link rel="shortcut icon" href={faviconUrl} />
+        <link rel="apple-touch-icon" href={appleIconUrl} />
       </head>
       <body className="min-h-full flex flex-col">
         <QueryProvider>

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { siteIconUrl } from "@/lib/site/icons";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Alat Guru",
@@ -14,19 +16,19 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "id",
     icons: [
       {
-        src: "/favicon.ico",
+        src: siteIconUrl("/favicon.ico"),
         sizes: "48x48",
         type: "image/x-icon",
         purpose: "any",
       },
       {
-        src: "/icon.png",
+        src: siteIconUrl("/icon.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon.png",
+        src: siteIconUrl("/icon.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
